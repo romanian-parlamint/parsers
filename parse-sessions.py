@@ -20,7 +20,7 @@ def iter_files(directory, file_type='html'):
         yield p
 
 
-def parse_arguments(args):
+def parse_arguments():
     parser = ArgumentParser()
     parser.add_argument(
         '-i',
