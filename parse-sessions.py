@@ -13,11 +13,15 @@ def iter_files(directory, file_type='html'):
     file_type: str, optional
         The type (extension) of the files to iterate over.
         Default is 'html'.
+
+    Returns
+    -------
+    file_path: generator of pathlib.Path
+        The generator that returns the path of each file.
     """
     root_path = Path(directory)
-    for p in root_path.glob('**/*.{}'.format(file_type)):
-        print(str(p))
-        yield p
+    for file_path in root_path.glob('**/*.{}'.format(file_type)):
+        yield file_path
 
 
 def parse_arguments():
