@@ -2,6 +2,17 @@ import logging
 from argparse import ArgumentParser
 from pathlib import Path
 
+class SessionType:
+    """Encodes the values for session types.
+    """
+    Ordinary = 's'
+    Extraordinary = 'se'
+    Joint = 'sc'
+    JointSolemn = 'scs'
+    JointVisit = 'scv'
+
+
+
 
 def iter_files(directory, file_type='html'):
     """Recursively iterates over the files of the specified type in the given directory.
