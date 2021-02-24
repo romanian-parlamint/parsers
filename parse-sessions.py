@@ -74,12 +74,15 @@ def parse_arguments():
     parser.add_argument(
         '-i',
         '--input-directory',
-        help="The root directory containing session transcripts.",
-        required=True)
-    parser.add_argument('-o',
-                        '--output-directory',
-                        help="The directory where to output XML files.",
-                        required=True)
+        help=
+        "The root directory containing session transcripts. Default value is './corpus'.",
+        default='./corpus')
+    parser.add_argument(
+        '-o',
+        '--output-directory',
+        help=
+        "The directory where to output XML files. Default value is './output'.",
+        default='./output')
     parser.add_argument(
         '-l',
         '--log-level',
