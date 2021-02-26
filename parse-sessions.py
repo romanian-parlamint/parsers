@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 from pathlib import Path
 import re
 from datetime import date
+import dateparser
+from lxml import etree
 
 
 class SessionType:
@@ -15,37 +17,59 @@ class SessionType:
     JointVisit = 'scv'
 
 
-def parse_session_date_and_type_from_path(file_path):
-    """Parses the session date and type from file path.
-
-    Parameters
-    ----------
-    file_path: str or pathlib.Path, required
-        The path of the file containing session transcription.
-
-    Returns
-    -------
-    (session_date, session_type): tuple of (datetime.date, str)
-        The session date and its type.
+class SessionParser:
+    """Class responsible for parsing a session html file.
     """
-    if isinstance(file_path, Path):
-        file_path = str(file_path)
+    def __init__(self, html_file):
+        """Creates a new instance of the SessionParser class.
 
-    logging.info(
-        'Parsing session date and type from file name [{}]'.format(file_path))
-    match = re.search(
-        r"/(?P<year>\d{4})/(?P<month>\d{2})/(?P<type>[a-z]{1,3})(?P<day>\d{2})-(?P=month)",
-        file_path)
-    if not match:
-        logging.error(
-            "Could not parse session date and type from file [{}].".format(
-                file_path))
-        return (None, None)
-    session_date = date(int(match.group('year')), int(match.group('month')),
-                        int(match.group('day')))
-    session_type = match.group('type')
+        Parameters
+        ----------
+        html_file: str or pathlib.Path
+            The HTML file containing session transcription.
+        """
 
-    return (session_date, session_type)
+        self.file_name = str(html_file) if isinstance(html_file,
+                                                      Path) else html_file
+        self.html_root = self._parse_html(html_file)
+
+    def parse_session_date(self):
+        dt, _ = self._parse_date_and_type()
+        return dt
+
+    def _parse_date_and_type(self):
+        """Parses the session date and type from file path.
+
+        Returns
+        -------
+        (session_date, session_type): tuple of (datetime.date, str)
+            The session date and its type.
+        """
+        msg = 'Parsing session date and type from file name [{}]'.format(
+            self.file_name)
+        logging.info(msg)
+        match = re.search(
+            r"/(?P<year>\d{4})/(\d{2}/)?(?P<type>[a-z]{1,3})-?(?P<day>\d{2})(-|_)(?P<month>\d{2})",
+            self.file_name)
+        if not match:
+            msg = "Could not parse session date and type from file [{}].".format(
+                self.file_name)
+            logging.error(msg)
+            return (None, None)
+
+        session_date = date(int(match.group('year')),
+                            int(match.group('month')), int(match.group('day')))
+        session_type = match.group('type')
+
+        return (session_date, session_type)
+
+    def _get_element_text(self, element):
+        return ''.join(element.itertext())
+
+    def _parse_html(self, html_file):
+        parser = etree.HTMLParser()
+        tree_root = etree.parse(html_file, parser=parser)
+        return tree_root.getroot()
 
 
 def iter_files(directory, file_type='html'):
