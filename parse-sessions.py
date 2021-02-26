@@ -34,8 +34,26 @@ class SessionParser:
         self.html_root = self._parse_html(html_file)
 
     def parse_session_date(self):
-        dt, _ = self._parse_date_and_type()
-        return dt
+        """Parses the session date from the name of the session file.
+
+        Returns
+        -------
+        session_date: datetime.date
+            The session date.
+        """
+        session_date, _ = self._parse_date_and_type()
+        return session_date
+
+    def parse_session_type(self):
+        """Parses the session type from the name of the session file.
+
+        Returns
+        -------
+        session_type: str
+            The type of the session.
+        """
+        _, session_type = self._parse_date_and_type()
+        return session_type
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
