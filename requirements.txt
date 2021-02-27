@@ -10,3 +10,7 @@ regex==2020.11.13
 six==1.15.0
 tzlocal==2.1
 Babel==2.9.0
+click==7.1.2
+joblib==1.0.1
+nltk==3.5
+tqdm==4.58.0

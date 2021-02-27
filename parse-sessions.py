@@ -5,6 +5,7 @@ import re
 from datetime import date
 from babel.dates import format_date
 from lxml import etree
+from nltk.tokenize import word_tokenize
 
 
 class SessionType:
@@ -21,13 +22,19 @@ class XmlElements:
     titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
     title = '{http://www.tei-c.org/ns/1.0}title'
     meeting = '{http://www.tei-c.org/ns/1.0}meeting'
+    u = '{http://www.tei-c.org/ns/1.0}u'
+    div = '{http://www.tei-c.org/ns/1.0}div'
+    extent = '{http://www.tei-c.org/ns/1.0}extent'
+    measure = '{http://www.tei-c.org/ns/1.0}measure'
 
 
 class XmlAttributes:
     xml_id = '{http://www.w3.org/XML/1998/namespace}id'
     lang = '{http://www.w3.org/XML/1998/namespace}lang'
-    title_type = 'type'
+    element_type = 'type'
     meeting_n = 'n'
+    unit = 'unit'
+    quantity = 'quantity'
 
 
 class Resources:
@@ -35,6 +42,10 @@ class Resources:
     SessionSubtitleRo = "Stenograma ședinței Camerei Deputaților din România din {}"
     SessionTitleEn = "Romanian parliamentary corpus ParlaMint-RO, Regular Session, Chamber of Deputies, {}"
     SessionSubtitleEn = "Minutes of the session of the Chamber of Deputies of Romania, {}"
+    NumSpeechesRo = "{} discursuri"
+    NumSpeechesEn = "{} speeches"
+    NumWordsRo = "{} cuvinte"
+    NumWordsEn = "{} words"
 
 
 class SessionParser:
@@ -136,6 +147,9 @@ class SessionXmlBuilder:
         self.output_file_prefix = output_file_prefix
         self.element_tree = etree.parse(template_file)
         self.xml = self.element_tree.getroot()
+        for div in self.xml.iterdescendants(XmlElements.div):
+            if div.get(XmlAttributes.element_type) == "debateSection":
+                self.debate_section = div
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
@@ -146,6 +160,51 @@ class SessionXmlBuilder:
         self._set_session_id()
         self._set_session_title()
         self._set_meeting_info()
+        self._set_session_stats()
+
+    def _set_session_stats(self):
+        """Updates the session statistics of the extent element.
+
+        """
+        num_speeches = self._get_num_speeches()
+        num_words = self._get_num_words()
+        for m in self.xml.iterdescendants(tag=XmlElements.measure):
+            if m.getparent().tag != XmlElements.extent:
+                continue
+            lang = m.get(XmlAttributes.lang)
+            unit = m.get(XmlAttributes.unit)
+
+            qty = num_speeches if unit == 'speeches' else num_words
+            m.set(XmlAttributes.quantity, str(qty))
+            if unit == 'speeches':
+                txt = Resources.NumSpeechesRo if lang == 'ro' else Resources.NumSpeechesEn
+            else:
+                txt = Resources.NumWordsRo if lang == 'ro' else Resources.NumWordsEn
+            m.text = txt.format(qty)
+
+    def _get_num_words(self):
+        """Computes the number of words from the session transcription.
+
+        Returns
+        -------
+        num_words: int
+            The number of words in the transcription.
+        """
+        text = "".join(self.debate_section.itertext())
+        num_words = len(word_tokenize(text))
+        return num_words
+
+    def _get_num_speeches(self):
+        """Computes the number of speeches (a.k.a. utterances).
+
+        Returns
+        -------
+        num_speeches: int
+            The number of speeches in the transcription.
+        """
+        speeches = [s for s in self.xml.iterdescendants(tag=XmlElements.u)]
+        num_speeches = len(speeches)
+        return num_speeches
 
     def _set_meeting_info(self):
         """Sets the contents of the meeting element.
@@ -165,7 +224,7 @@ class SessionXmlBuilder:
             if elem.getparent().tag != XmlElements.titleStmt:
                 continue
 
-            title_type = elem.get(XmlAttributes.title_type)
+            title_type = elem.get(XmlAttributes.element_type)
             lang = elem.get(XmlAttributes.lang)
             if title_type == 'main' and lang == 'ro':
                 elem.text = Resources.SessionTitleRo.format(ro_date)
