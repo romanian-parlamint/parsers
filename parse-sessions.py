@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 import re
 from datetime import date
-import dateparser
+from babel.dates import format_date
 from lxml import etree
 
 
@@ -15,6 +15,13 @@ class SessionType:
     Joint = 'sc'
     JointSolemn = 'scs'
     JointVisit = 'scv'
+
+
+class Resources:
+    SessionTitleRo = "Corpus parlamentar român ParlaMint-RO, ședința Camerei Deputaților din {}"
+    SessionSubtitleRo = "Stenograma ședinței Camerei Deputaților din România din {}"
+    SessionTitleEn = "Romanian parliamentary corpus ParlaMint-RO, Regular Session, Chamber of Deputies, {}"
+    SessionSubtitleEn = "Minutes of the session of the Chamber of Deputies of Romania, {}"
 
 
 class SessionParser:
@@ -90,6 +97,86 @@ class SessionParser:
         return tree_root.getroot()
 
 
+class SessionXmlBuilder:
+    """Class responsible for building the XML file with the transcript of a session.
+    """
+    def __init__(self,
+                 input_file,
+                 template_file,
+                 output_directory,
+                 output_file_prefix='ParlaMint-RO'):
+        """Creates a new instance of SessionXmlBuilder class.
+
+        Parameters
+        ----------
+        input_file: str, required
+            The path to the HTML file containing the session transcription.
+        template_file: str, required
+            The path to the file containing the XML template of the output.
+        output_directory: str, required
+            The path to the output directory.
+        output_file_prefix: str, optional
+            The prefix of the output file name. Default is `ParlaMint-RO`.
+        """
+        self.parser = SessionParser(input_file)
+        self.output_directory = output_directory
+        self.output_file_prefix = output_file_prefix
+        self.xml = etree.parse(template_file)
+
+    def build_session_xml(self):
+        """Builds the session XML from its transcription.
+        """
+        self._set_session_id()
+        self._set_session_title()
+
+    def _set_session_title(self):
+        """Sets the contents of th title elements.
+        """
+        session_date = self.parser.parse_session_date()
+        ro_date = format_date(session_date, "d MMMM yyyy", locale="ro")
+        en_date = format_date(session_date, "MMMM d yyyy", locale="en")
+        titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
+        title_tag = '{http://www.tei-c.org/ns/1.0}title'
+
+        for elem in self.xml.getroot().iterdescendants(tag=title_tag):
+            if elem.getparent().tag != titleStmt:
+                continue
+
+            title_type = elem.get('type')
+            lang = elem.get('{http://www.w3.org/XML/1998/namespace}lang')
+            if title_type == 'main' and lang == 'ro':
+                elem.text = Resources.SessionTitleRo.format(ro_date)
+
+            if title_type == 'main' and lang == 'en':
+                elem.text = Resources.SessionTitleEn.format(en_date)
+
+            if title_type == 'sub' and lang == 'ro':
+                elem.text = Resources.SessionSubtitleRo.format(ro_date)
+
+            if title_type == 'sub' and lang == 'en':
+                elem.text = Resources.SessionSubtitleEn.format(en_date)
+
+    def _set_session_id(self):
+        """Sets the id of the TEI element.
+        """
+        session_id = self._build_session_id(self.parser.parse_session_date())
+        self.xml.getroot().set("{http://www.w3.org/XML/1998/namespace}id",
+                               session_id)
+
+    def _build_session_id(self, session_date):
+        """Builds the session id from the date and file prefix.
+
+        Parameters
+        ----------
+        session_date: datetime.date
+            The date of the session.
+        """
+        return "-".join([
+            self.output_file_prefix,
+            format_date(session_date, "yyyy-MM-dd"), "CD"
+        ])
+
+
 def iter_files(directory, file_type='html'):
     """Recursively iterates over the files of the specified type in the given directory.
 
@@ -119,6 +206,10 @@ def parse_arguments():
         help=
         "The root directory containing session transcripts. Default value is './corpus'.",
         default='./corpus')
+    parser.add_argument(
+        '--session-template-xml',
+        help="The file containing the XML template of a section.",
+        default='./session-template.xml')
     parser.add_argument(
         '-o',
         '--output-directory',
