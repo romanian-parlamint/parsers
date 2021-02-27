@@ -29,6 +29,15 @@ class XmlElements:
     date = '{http://www.tei-c.org/ns/1.0}date'
     bibl = '{http://www.tei-c.org/ns/1.0}bibl'
     setting = '{http://www.tei-c.org/ns/1.0}setting'
+    tagUsage = '{http://www.tei-c.org/ns/1.0}tagUsage'
+    text = '{http://www.tei-c.org/ns/1.0}text'
+    body = '{http://www.tei-c.org/ns/1.0}body'
+    head = '{http://www.tei-c.org/ns/1.0}head'
+    note = '{http://www.tei-c.org/ns/1.0}note'
+    seg = '{http://www.tei-c.org/ns/1.0}seg'
+    kinesic = '{http://www.tei-c.org/ns/1.0}kinesic'
+    desc = '{http://www.tei-c.org/ns/1.0}desc'
+    gap = '{http://www.tei-c.org/ns/1.0}gap'
 
 
 class XmlAttributes:
@@ -39,6 +48,8 @@ class XmlAttributes:
     unit = 'unit'
     quantity = 'quantity'
     when = 'when'
+    gi = 'gi'
+    occurs = 'occurs'
 
 
 class Resources:
@@ -167,10 +178,47 @@ class SessionXmlBuilder:
         self._set_session_date()
 
         self._set_session_stats()
+        self._set_tag_usage()
+
+    def _set_tag_usage(self):
+        """Updates the values for tagUsage elements.
+        """
+        name_map = {
+            "text": XmlElements.text,
+            "body": XmlElements.body,
+            "div": XmlElements.div,
+            "head": XmlElements.head,
+            "note": XmlElements.note,
+            "u": XmlElements.u,
+            "seg": XmlElements.seg,
+            "kinesic": XmlElements.kinesic,
+            "desc": XmlElements.desc,
+            "gap": XmlElements.gap
+        }
+        for tag_usage in self.xml.iterdescendants(tag=XmlElements.tagUsage):
+            tag_name = name_map[tag_usage.get(XmlAttributes.gi)]
+            num_occurences = self._get_num_occurences(tag_name)
+            tag_usage.set(XmlAttributes.occurs, str(num_occurences))
+
+    def _get_num_occurences(self, tag):
+        """Computes the number of occurences for the specified tag.
+
+        Parameters
+        ----------
+        tag: str
+            The tag for which to compute number of occurences.
+
+        Returns
+        -------
+        num_occurences: int
+            The number of times the tag is present in the document.
+        """
+        tags = self.xml.iterdescendants(tag=tag)
+        num_occurences = len([t for t in tags])
+        return num_occurences
 
     def _set_session_date(self):
         """Updates the session date in the XML file.
-
         """
         for date in self.xml.iterdescendants(tag=XmlElements.date):
             parent_tag = date.getparent().tag
