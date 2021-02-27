@@ -145,6 +145,15 @@ class SessionXmlBuilder:
 
         self._set_session_id()
         self._set_session_title()
+        self._set_meeting_info()
+
+    def _set_meeting_info(self):
+        """Sets the contents of the meeting element.
+
+        """
+        meeting_n = format_date(self.session_date, "yyyyMMdd")
+        for meeting in self.xml.iterdescendants(tag=XmlElements.meeting):
+            meeting.set(XmlAttributes.meeting_n, meeting_n)
 
     def _set_session_title(self):
         """Sets the contents of th title elements.
