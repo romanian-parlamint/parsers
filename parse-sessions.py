@@ -17,6 +17,19 @@ class SessionType:
     JointVisit = 'scv'
 
 
+class XmlElements:
+    titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
+    title = '{http://www.tei-c.org/ns/1.0}title'
+    meeting = '{http://www.tei-c.org/ns/1.0}meeting'
+
+
+class XmlAttributes:
+    xml_id = '{http://www.w3.org/XML/1998/namespace}id'
+    lang = '{http://www.w3.org/XML/1998/namespace}lang'
+    title_type = 'type'
+    meeting_n = 'n'
+
+
 class Resources:
     SessionTitleRo = "Corpus parlamentar român ParlaMint-RO, ședința Camerei Deputaților din {}"
     SessionSubtitleRo = "Stenograma ședinței Camerei Deputaților din România din {}"
@@ -121,29 +134,30 @@ class SessionXmlBuilder:
         self.parser = SessionParser(input_file)
         self.output_directory = output_directory
         self.output_file_prefix = output_file_prefix
-        self.xml = etree.parse(template_file)
+        self.element_tree = etree.parse(template_file)
+        self.xml = self.element_tree.getroot()
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
         """
+        self.session_date = self.parser.parse_session_date()
+        self.session_type = self.parser.parse_session_type()
+
         self._set_session_id()
         self._set_session_title()
 
     def _set_session_title(self):
         """Sets the contents of th title elements.
         """
-        session_date = self.parser.parse_session_date()
-        ro_date = format_date(session_date, "d MMMM yyyy", locale="ro")
-        en_date = format_date(session_date, "MMMM d yyyy", locale="en")
-        titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
-        title_tag = '{http://www.tei-c.org/ns/1.0}title'
+        ro_date = format_date(self.session_date, "d MMMM yyyy", locale="ro")
+        en_date = format_date(self.session_date, "MMMM d yyyy", locale="en")
 
-        for elem in self.xml.getroot().iterdescendants(tag=title_tag):
-            if elem.getparent().tag != titleStmt:
+        for elem in self.xml.iterdescendants(tag=XmlElements.title):
+            if elem.getparent().tag != XmlElements.titleStmt:
                 continue
 
-            title_type = elem.get('type')
-            lang = elem.get('{http://www.w3.org/XML/1998/namespace}lang')
+            title_type = elem.get(XmlAttributes.title_type)
+            lang = elem.get(XmlAttributes.lang)
             if title_type == 'main' and lang == 'ro':
                 elem.text = Resources.SessionTitleRo.format(ro_date)
 
@@ -159,21 +173,20 @@ class SessionXmlBuilder:
     def _set_session_id(self):
         """Sets the id of the TEI element.
         """
-        session_id = self._build_session_id(self.parser.parse_session_date())
-        self.xml.getroot().set("{http://www.w3.org/XML/1998/namespace}id",
-                               session_id)
+        session_id = self._build_session_id()
+        self.xml.set(XmlAttributes.xml_id, session_id)
 
-    def _build_session_id(self, session_date):
+    def _build_session_id(self):
         """Builds the session id from the date and file prefix.
 
-        Parameters
-        ----------
-        session_date: datetime.date
-            The date of the session.
+        Returns
+        -------
+        session_id: str
+            The id of the session.
         """
         return "-".join([
             self.output_file_prefix,
-            format_date(session_date, "yyyy-MM-dd"), "CD"
+            format_date(self.session_date, "yyyy-MM-dd"), "CD"
         ])
 
 
