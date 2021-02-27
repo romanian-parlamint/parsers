@@ -26,6 +26,9 @@ class XmlElements:
     div = '{http://www.tei-c.org/ns/1.0}div'
     extent = '{http://www.tei-c.org/ns/1.0}extent'
     measure = '{http://www.tei-c.org/ns/1.0}measure'
+    date = '{http://www.tei-c.org/ns/1.0}date'
+    bibl = '{http://www.tei-c.org/ns/1.0}bibl'
+    setting = '{http://www.tei-c.org/ns/1.0}setting'
 
 
 class XmlAttributes:
@@ -35,6 +38,7 @@ class XmlAttributes:
     meeting_n = 'n'
     unit = 'unit'
     quantity = 'quantity'
+    when = 'when'
 
 
 class Resources:
@@ -160,7 +164,20 @@ class SessionXmlBuilder:
         self._set_session_id()
         self._set_session_title()
         self._set_meeting_info()
+        self._set_session_date()
+
         self._set_session_stats()
+
+    def _set_session_date(self):
+        """Updates the session date in the XML file.
+
+        """
+        for date in self.xml.iterdescendants(tag=XmlElements.date):
+            parent_tag = date.getparent().tag
+            if parent_tag == XmlElements.setting or parent_tag == XmlElements.bibl:
+                date.set(XmlAttributes.when,
+                         format_date(self.session_date, "yyyy-MM-dd"))
+                date.text = format_date(self.session_date, "dd.MM.yyyy")
 
     def _set_session_stats(self):
         """Updates the session statistics of the extent element.
