@@ -101,6 +101,27 @@ class SessionParser:
         _, session_type = self._parse_date_and_type()
         return session_type
 
+    def parse_session_summary(self):
+        """Parses the session summary table.
+
+        Returns
+        -------
+        summary_lines: list of str
+            The list fo summary lines.
+        """
+        try:
+            tbl = next(self.html_root.iterdescendants(tag='table'))
+        except StopIteration:
+            logging.error('Could not find summary table for file [{}].'.format(
+                self.file_name))
+            return []
+        summary_lines = []
+        for row in tbl.iterdescendants(tag="tr"):
+            cols = list(row)
+            line = self._get_element_text(cols[1])
+            summary_lines.append(line)
+        return summary_lines
+
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
 
