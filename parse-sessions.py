@@ -61,6 +61,8 @@ class Resources:
     NumSpeechesEn = "{} speeches"
     NumWordsRo = "{} cuvinte"
     NumWordsEn = "{} words"
+    Heading = "ROMÂNIA CAMERA DEPUTAȚILOR"
+    SessionHeading = "Ședinta Camerei Deputaților din {}"
 
 
 class SessionParser:
@@ -198,8 +200,26 @@ class SessionXmlBuilder:
         self._set_meeting_info()
         self._set_session_date()
 
+        self._set_session_heading()
+
         self._set_session_stats()
         self._set_tag_usage()
+
+    def _set_session_heading(self):
+        """Adds the head elements to session description.
+
+        """
+        head = etree.SubElement(self.debate_section, XmlElements.head)
+        head.text = Resources.Heading
+        session_head = etree.SubElement(self.debate_section, XmlElements.head)
+        session_head.set(XmlAttributes.element_type, "session")
+        session_head.text = Resources.SessionHeading.format(
+            format_date(self.session_date, "d MMMM yyyy"))
+
+        for summary_line in self.parser.parse_session_summary():
+            note = etree.SubElement(self.debate_section, XmlElements.note)
+            note.set(XmlAttributes.element_type, "summary")
+            note.text = summary_line.strip()
 
     def _set_tag_usage(self):
         """Updates the values for tagUsage elements.
