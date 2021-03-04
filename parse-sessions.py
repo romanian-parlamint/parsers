@@ -63,6 +63,7 @@ class Resources:
     NumWordsEn = "{} words"
     Heading = "ROMÂNIA CAMERA DEPUTAȚILOR"
     SessionHeading = "Ședinta Camerei Deputaților din {}"
+    ToC = "SUMAR"
 
 
 class SessionParser:
@@ -232,6 +233,11 @@ class SessionXmlBuilder:
         session_head.text = Resources.SessionHeading.format(
             format_date(self.session_date, "d MMMM yyyy"))
 
+        summary = self.parser.parse_session_summary()
+        if len(summary) > 0:
+            note = etree.SubElement(self.debate_section, XmlElements.note)
+            note.set(XmlAttributes.element_type, "editorial")
+            note.text = Resources.ToC
         for summary_line in self.parser.parse_session_summary():
             note = etree.SubElement(self.debate_section, XmlElements.note)
             note.set(XmlAttributes.element_type, "summary")
