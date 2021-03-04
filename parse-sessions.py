@@ -189,6 +189,22 @@ class SessionXmlBuilder:
             if div.get(XmlAttributes.element_type) == "debateSection":
                 self.debate_section = div
 
+    def write_to_file(self, file_name=None):
+        """Writes the XML session to a file given by file_name or session id.
+
+        Parameters
+        ----------
+        file_name: str, optional
+            The name of the output file. Default is the session id.
+        """
+        if not file_name:
+            file_name = "{}.xml".format(self._build_session_id())
+        file_name = Path(self.output_directory, file_name)
+        self.element_tree.write(str(file_name),
+                                pretty_print=True,
+                                encoding='utf-8',
+                                xml_declaration=True)
+
     def build_session_xml(self):
         """Builds the session XML from its transcription.
         """
