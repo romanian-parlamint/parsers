@@ -113,17 +113,50 @@ class SessionParser:
             The list fo summary lines.
         """
         try:
-            tbl = next(self.html_root.iterdescendants(tag='table'))
+            self.summary_table = next(
+                self.html_root.iterdescendants(tag='table'))
         except StopIteration:
             logging.error('Could not find summary table for file [{}].'.format(
                 self.file_name))
             return []
         summary_lines = []
-        for row in tbl.iterdescendants(tag="tr"):
+        for row in self.summary_table.iterdescendants(tag="tr"):
             cols = list(row)
             line = self._get_element_text(cols[1])
             summary_lines.append(line)
         return summary_lines
+
+    def parse_session_heading(self):
+        """Parses the session heading.
+
+        Returns
+        -------
+        heading: str
+            The heading line.
+        """
+        heading_elem = None
+        found = False
+        for para in self.html_root.iterdescendants(tag='p'):
+            text = self._get_element_text(para)
+            if '[1]' in text:
+                found = True
+                break
+        if not found:
+            logging.error(
+                "Could not find anchor point for session heading in file [{}]".
+                format(self.file_name))
+            return None
+        found = False
+        while (para is not None) and (para.tag != 'table') and (not found):
+            para = para.getprevious()
+            text = self._get_element_text(para)
+            found = 'stenograma' in text.lower()
+        if not found:
+            logging.error(
+                "Could not parse session heading in file [{}].".format(
+                    self.file_name))
+            return None
+        return text
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
