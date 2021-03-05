@@ -275,6 +275,11 @@ class SessionXmlBuilder:
             note = etree.SubElement(self.debate_section, XmlElements.note)
             note.set(XmlAttributes.element_type, "summary")
             note.text = summary_line.strip()
+        heading = self.parser.parse_session_heading()
+        if heading is not None:
+            note = etree.SubElement(self.debate_section, XmlElements.note)
+            note.set(XmlAttributes.element_type, "editorial")
+            note.text = heading
 
     def _set_tag_usage(self):
         """Updates the values for tagUsage elements.
