@@ -255,6 +255,12 @@ class SessionXmlBuilder:
         self._set_session_stats()
         self._set_tag_usage()
 
+        logging.debug(
+            etree.tostring(self.element_tree,
+                           pretty_print=True,
+                           encoding='utf-8',
+                           xml_declaration=True))
+
     def _set_session_heading(self):
         """Adds the head elements to session description.
 
