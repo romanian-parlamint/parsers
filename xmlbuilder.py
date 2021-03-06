@@ -83,7 +83,7 @@ class SessionXmlBuilder:
             The name of the output file. Default is the session id.
         """
         if not file_name:
-            file_name = "{}.xml".format(self._build_session_id())
+            file_name = "{}.xml".format(self.id_builder.session_id)
         file_name = Path(self.output_directory, file_name)
         self.element_tree.write(str(file_name),
                                 pretty_print=True,
@@ -95,7 +95,8 @@ class SessionXmlBuilder:
         """
         self.session_date = self.parser.parse_session_date()
         self.session_type = self.parser.parse_session_type()
-
+        self.id_builder = XmlIdBuilder(self.output_file_prefix,
+                                       self.session_date)
         self._set_session_id()
         self._set_session_title()
         self._set_meeting_info()
@@ -274,8 +275,31 @@ class SessionXmlBuilder:
     def _set_session_id(self):
         """Sets the id of the TEI element.
         """
-        session_id = self._build_session_id()
-        self.xml.set(XmlAttributes.xml_id, session_id)
+        self.xml.set(XmlAttributes.xml_id, self.id_builder.session_id)
+
+
+class XmlIdBuilder:
+    """Builds the values for id attributes of XML elements.
+    """
+    def __init__(self, prefix, session_date):
+        """Creates a new instance of XmlIdBuilder.
+        """
+        self.prefix = prefix
+        self.session_date = session_date
+        self.root_id = None
+
+    @property
+    def session_id(self):
+        """Gets the session id.
+
+        Returns
+        -------
+        session_id: str
+            The session id.
+        """
+        if self.root_id is None:
+            self.root_id = self._build_session_id()
+        return self.root_id
 
     def _build_session_id(self):
         """Builds the session id from the date and file prefix.
@@ -285,7 +309,7 @@ class SessionXmlBuilder:
         session_id: str
             The id of the session.
         """
-        return "-".join([
-            self.output_file_prefix,
-            format_date(self.session_date, "yyyy-MM-dd"), "CD"
-        ])
+        self.root_id = "-".join(
+            [self.prefix,
+             format_date(self.session_date, "yyyy-MM-dd"), "CD"])
+        return self.session_id
