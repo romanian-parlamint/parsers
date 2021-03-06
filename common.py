@@ -1,3 +1,6 @@
+import re
+
+
 class SessionType:
     """Encodes the values for session types.
     """
@@ -20,3 +23,39 @@ class Resources:
     Heading = "ROMÂNIA CAMERA DEPUTAȚILOR"
     SessionHeading = "Ședinta Camerei Deputaților din {}"
     ToC = "SUMAR"
+
+
+class StringFormatter:
+    """Formats the strings parsed from the session transcription.
+    """
+    def __init__(self):
+        """Creates a new instance of StringFormatter.
+        """
+        self.translations = str.maketrans({
+            'þ': 'ț',
+            'º': 'ș',
+            'Þ': 'Ț',
+            'ã': 'ă',
+            'ª': 'Ș'
+        })
+
+    def to_single_line(self, value):
+        """Removes line feed/carriage returns from given string.
+
+        Parameters
+        ----------
+        value: str, required
+            The string to convert to single line.
+        """
+        line = " ".join([l.strip() for l in value.splitlines()])
+        return self.normalize(line)
+
+    def normalize(self, value):
+        """Normalizes the string by stripping whitespace and translating diacritics.
+
+        Parameters
+        ----------
+        value: str, required
+            The string to normalize.
+        """
+        return value.strip().translate(self.translations)
