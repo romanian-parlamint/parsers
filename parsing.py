@@ -62,6 +62,19 @@ class Segment:
         """
         return get_element_text(self.paragraph)
 
+    def get_note_text(self):
+        """Returns the editorial note text.
+
+        Returns
+        -------
+        text: str
+            The text of the note.
+        """
+        for child in self.paragraph:
+            if child.tag == 'i':
+                return get_element_text(child)
+        return None
+
 
 class SessionParser:
     """Class responsible for parsing a session html file.
