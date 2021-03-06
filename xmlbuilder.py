@@ -6,6 +6,7 @@ from common import Resources
 from parsing import SessionParser
 from nltk.tokenize import word_tokenize
 from pathlib import Path
+from common import StringFormatter
 
 
 class XmlElements:
@@ -64,6 +65,7 @@ class SessionXmlBuilder:
             The prefix of the output file name. Default is `ParlaMint-RO`.
         """
         self.parser = SessionParser(input_file)
+        self.formatter = StringFormatter()
         self.output_directory = output_directory
         self.output_file_prefix = output_file_prefix
         self.element_tree = etree.parse(template_file)
@@ -129,12 +131,12 @@ class SessionXmlBuilder:
         for summary_line in self.parser.parse_session_summary():
             note = etree.SubElement(self.debate_section, XmlElements.note)
             note.set(XmlAttributes.element_type, "summary")
-            note.text = summary_line.strip()
+            note.text = self.formatter.normalize(summary_line)
         heading = self.parser.parse_session_heading()
         if heading is not None:
             note = etree.SubElement(self.debate_section, XmlElements.note)
             note.set(XmlAttributes.element_type, "editorial")
-            note.text = heading
+            note.text = self.formatter.to_single_line(heading)
 
     def _set_tag_usage(self):
         """Updates the values for tagUsage elements.
