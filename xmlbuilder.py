@@ -101,7 +101,7 @@ class SessionXmlBuilder:
         self._set_meeting_info()
         self._set_session_date()
 
-        self._set_session_heading()
+        self._build_session_heading()
 
         self._set_session_stats()
         self._set_tag_usage()
@@ -112,7 +112,7 @@ class SessionXmlBuilder:
                            encoding='utf-8',
                            xml_declaration=True))
 
-    def _set_session_heading(self):
+    def _build_session_heading(self):
         """Adds the head elements to session description.
 
         """
