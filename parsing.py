@@ -35,7 +35,8 @@ class Segment:
         """
         for child in self.paragraph:
             if child.tag == 'i':
-                return True
+                if len(get_element_text(child)) > 0:
+                    return True
         return False
 
     def get_speaker(self):
