@@ -119,6 +119,24 @@ class SessionParser:
                 self.file_name))
         return None
 
+    def parse_session_chairmen(self):
+        """Parses the segment about who presides the session.
+
+        Returns
+        -------
+        chairmen_seg: str
+            The segment containing info about who presides the session.
+        """
+        if self.current_node is None:
+            logging.error(
+                'Current node not set in file [{}]. Cannot parse chairmen segment.'
+                .format(self.file_name))
+            return None
+
+        self.current_node = self.current_node.getnext()
+        text = self._get_element_text(self.current_node)
+        return text
+
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
 
