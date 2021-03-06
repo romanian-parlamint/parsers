@@ -102,7 +102,12 @@ class SessionParser:
         return text
 
     def parse_session_start_time(self):
-        """Parses the start time of the session.
+        """Parses the segment containing start time of the session.
+
+        Returns
+        -------
+        session_start_time: str
+            The segment containing session start time or None.
         """
         for para in self.html_root.iterdescendants(tag='p'):
             text = self.formatter.normalize(self._get_element_text(para))
