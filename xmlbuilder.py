@@ -142,6 +142,11 @@ class SessionXmlBuilder:
             note = etree.SubElement(self.debate_section, XmlElements.note)
             note.set(XmlAttributes.element_type, "time")
             note.text = self.formatter.to_single_line(start_time)
+        chairmen = self.parser.parse_session_chairmen()
+        if chairmen is not None:
+            note = etree.SubElement(self.debate_section, XmlElements.note)
+            note.set(XmlAttributes.element_type, "chairman")
+            note.text = self.formatter.to_single_line(chairmen)
 
     def _set_tag_usage(self):
         """Updates the values for tagUsage elements.
