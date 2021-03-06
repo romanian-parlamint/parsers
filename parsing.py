@@ -9,6 +9,59 @@ from common import SessionType
 from common import StringFormatter
 
 
+def get_element_text(element):
+    return ''.join(element.itertext())
+
+
+class Segment:
+    """Represents a segment of a  session.
+    """
+    def __init__(self, paragraph):
+        self.paragraph = paragraph
+        self.children = list(self.paragraph)
+        self.full_text = get_element_text(self.paragraph)
+
+    @property
+    def is_speaker(self):
+        """Returns true if the segment is a speaker segment.
+        """
+        match = re.match(r'(domnul|doamna)\s+[^:]+:', self.full_text,
+                         re.IGNORECASE | re.MULTILINE)
+        return match is not None
+
+    @property
+    def has_note(self):
+        """Returns true if the current segment contains a note.
+        """
+        for child in self.paragraph:
+            if child.tag == 'i':
+                return True
+        return False
+
+    def get_speaker(self):
+        """Returns the speaker name if the current segment is a speaker.
+
+        Returns
+        -------
+        speaker: str
+            The speaker name if current segment is a speaker; otherwise None.
+        """
+        if not self.is_speaker:
+            return None
+        return re.sub(r'domnul|doamna|:', '', self.full_text, 0,
+                      re.MULTILINE | re.IGNORECASE)
+
+    def get_text(self):
+        """Returns the text of the current segment.
+
+        Returns
+        -------
+        text: str
+            The text of the segment.
+        """
+        return get_element_text(self.paragraph)
+
+
 class SessionParser:
     """Class responsible for parsing a session html file.
     """
@@ -24,6 +77,8 @@ class SessionParser:
         self.file_name = str(html_file) if isinstance(html_file,
                                                       Path) else html_file
         self.html_root = self._parse_html(html_file)
+        logging.debug("In SessionParser. HTML root is:\n{}".format(
+            etree.tostring(self.html_root, method='html', pretty_print=True)))
 
     def parse_session_date(self):
         """Parses the session date from the name of the session file.
@@ -65,7 +120,7 @@ class SessionParser:
         summary_lines = []
         for row in self.summary_table.iterdescendants(tag="tr"):
             cols = list(row)
-            line = self._get_element_text(cols[1])
+            line = get_element_text(cols[1])
             summary_lines.append(line)
         return summary_lines
 
@@ -80,7 +135,7 @@ class SessionParser:
         heading_elem = None
         found = False
         for para in self.html_root.iterdescendants(tag='p'):
-            text = self._get_element_text(para)
+            text = get_element_text(para)
             if '[1]' in text:
                 found = True
                 break
@@ -92,7 +147,7 @@ class SessionParser:
         found = False
         while (para is not None) and (para.tag != 'table') and (not found):
             para = para.getprevious()
-            text = self._get_element_text(para)
+            text = get_element_text(para)
             found = 'stenograma' in text.lower()
         if not found:
             logging.error(
@@ -110,7 +165,7 @@ class SessionParser:
             The segment containing session start time or None.
         """
         for para in self.html_root.iterdescendants(tag='p'):
-            text = self.formatter.normalize(self._get_element_text(para))
+            text = self.formatter.normalize(get_element_text(para))
             if 'ședința a început la ora' in text.lower():
                 self.current_node = para
                 return text
@@ -134,8 +189,29 @@ class SessionParser:
             return None
 
         self.current_node = self.current_node.getnext()
-        text = self._get_element_text(self.current_node)
+        text = get_element_text(self.current_node)
         return text
+
+    def parse_session_segments(self):
+        """Parses the segments that form the body of the session.
+
+        Returns
+        -------
+        segments: iterable of Segment
+            The segments that form the body of the session.
+        """
+        if self.current_node is None:
+            logging.error(
+                'Current node not set in file [{}]. Cannot parse session body.'
+                .format(self.file_name))
+            return []
+        segments = []
+        while self.current_node is not None:
+            self.current_node = self.current_node.getnext()
+            if (self.current_node
+                    is not None) and (self.current_node.getnext() is not None):
+                segments.append(Segment(self.current_node))
+        return segments
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
@@ -162,9 +238,6 @@ class SessionParser:
         session_type = match.group('type')
 
         return (session_date, session_type)
-
-    def _get_element_text(self, element):
-        return ''.join(element.itertext())
 
     def _parse_html(self, html_file):
         parser = etree.HTMLParser()
