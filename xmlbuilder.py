@@ -1,6 +1,7 @@
 import logging
 from datetime import date
 from babel.dates import format_date
+import re
 from lxml import etree
 from common import Resources
 from parsing import SessionParser
@@ -41,6 +42,8 @@ class XmlAttributes:
     when = 'when'
     gi = 'gi'
     occurs = 'occurs'
+    ana = 'ana'
+    who = 'who'
 
 
 class SessionXmlBuilder:
@@ -103,6 +106,7 @@ class SessionXmlBuilder:
         self._set_session_date()
 
         self._build_session_heading()
+        self._build_session_body()
 
         self._set_session_stats()
         self._set_tag_usage()
@@ -112,6 +116,29 @@ class SessionXmlBuilder:
                            pretty_print=True,
                            encoding='utf-8',
                            xml_declaration=True))
+
+    def _build_session_body(self):
+        """Adds the session segments to the session description.
+        """
+        is_first = True
+        for segment in self.parser.parse_session_segments():
+            if segment.is_speaker:
+                note = etree.SubElement(self.debate_section, XmlElements.note)
+                note.set(XmlAttributes.element_type, "speaker")
+                note.text = self.formatter.to_single_line(segment.get_text())
+                utterance = etree.SubElement(self.debate_section,
+                                             XmlElements.u)
+                if is_first:
+                    chairman = self.formatter.to_single_line(
+                        segment.get_speaker())
+                    is_first = False
+                speaker = self.formatter.to_single_line(segment.get_speaker())
+                utterance.set(XmlAttributes.ana,
+                              "#chair" if speaker == chairman else "#regular")
+                utterance.set(XmlAttributes.who,
+                              self.id_builder.get_speaker_id(speaker))
+                utterance.set(XmlAttributes.xml_id,
+                              self.id_builder.build_utterance_id())
 
     def _build_session_heading(self):
         """Adds the head elements to session description.
@@ -287,6 +314,7 @@ class XmlIdBuilder:
         self.prefix = prefix
         self.session_date = session_date
         self.root_id = None
+        self.utterance_index = 0
 
     @property
     def session_id(self):
@@ -300,6 +328,27 @@ class XmlIdBuilder:
         if self.root_id is None:
             self.root_id = self._build_session_id()
         return self.root_id
+
+    def get_speaker_id(self, speaker):
+        """Gets the id of the speaker if speaker is a known person or builds new id.
+
+        Returns
+        -------
+        speaker_id: str
+            The id of the speaker.
+        """
+        return "#{}".format(re.sub(r'\s+', '-', speaker, 0, re.MULTILINE))
+
+    def build_utterance_id(self):
+        """Builds the id of the current utterance.
+
+        Returns
+        -------
+        utterance_id: str
+            The id of the current utterance.
+        """
+        self.utterance_index = self.utterance_index + 1
+        return "{}.u{}".format(self.session_id, self.utterance_index)
 
     def _build_session_id(self):
         """Builds the session id from the date and file prefix.
