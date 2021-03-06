@@ -6,6 +6,7 @@ from babel.dates import format_date
 from lxml import etree
 from nltk.tokenize import word_tokenize
 from common import SessionType
+from common import StringFormatter
 
 
 class SessionParser:
@@ -19,7 +20,7 @@ class SessionParser:
         html_file: str or pathlib.Path
             The HTML file containing session transcription.
         """
-
+        self.formatter = StringFormatter()
         self.file_name = str(html_file) if isinstance(html_file,
                                                       Path) else html_file
         self.html_root = self._parse_html(html_file)
@@ -99,6 +100,19 @@ class SessionParser:
                     self.file_name))
             return None
         return text
+
+    def parse_session_start_time(self):
+        """Parses the start time of the session.
+        """
+        for para in self.html_root.iterdescendants(tag='p'):
+            text = self.formatter.normalize(self._get_element_text(para))
+            if 'ședința a început la ora' in text.lower():
+                self.current_node = para
+                return text
+        logging.error(
+            "Could not parse session start time for file [{}].".format(
+                self.file_name))
+        return None
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
