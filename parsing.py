@@ -49,7 +49,7 @@ class Segment:
         """
         if not self.is_speaker:
             return None
-        return re.sub(r'domnul|doamna|:', '', self.full_text, 0,
+        return re.sub(r'domnul|doamna|(\(.+\)*):', '', self.full_text, 0,
                       re.MULTILINE | re.IGNORECASE)
 
     def get_text(self):
