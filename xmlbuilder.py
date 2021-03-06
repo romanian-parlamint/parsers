@@ -126,6 +126,14 @@ class SessionXmlBuilder:
                 note = etree.SubElement(self.debate_section, XmlElements.note)
                 note.set(XmlAttributes.element_type, "speaker")
                 note.text = self.formatter.to_single_line(segment.get_text())
+
+                if segment.has_note:
+                    note = etree.SubElement(self.debate_section,
+                                            XmlElements.note)
+                    note.set(XmlAttributes.element_type, "editorial")
+                    note.text = self.formatter.to_single_line(
+                        segment.get_note_text())
+
                 utterance = etree.SubElement(self.debate_section,
                                              XmlElements.u)
                 if is_first:
