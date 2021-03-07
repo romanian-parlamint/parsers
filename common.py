@@ -36,7 +36,8 @@ class StringFormatter:
             'º': 'ș',
             'Þ': 'Ț',
             'ã': 'ă',
-            'ª': 'Ș'
+            'ª': 'Ș',
+            '\226': '\u2013'
         })
 
     def to_single_line(self, value):
