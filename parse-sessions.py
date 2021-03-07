@@ -9,7 +9,7 @@ from nltk.tokenize import word_tokenize
 from xmlbuilder import SessionXmlBuilder
 
 
-def iter_files(directory, file_type='html'):
+def iter_files(directory, file_type='html', include_files=None):
     """Recursively iterates over the files of the specified type in the given directory.
 
     Parameters
@@ -19,6 +19,8 @@ def iter_files(directory, file_type='html'):
     file_type: str, optional
         The type (extension) of the files to iterate over.
         Default is 'html'.
+    include_files: str, optional
+        A pattern to filter files. Default is `None` which means include all.
 
     Returns
     -------
@@ -27,7 +29,12 @@ def iter_files(directory, file_type='html'):
     """
     root_path = Path(directory)
     for file_path in root_path.glob('**/*.{}'.format(file_type)):
-        yield file_path
+        if not include_files:
+            yield file_path
+
+        match = re.search(include_files, str(file_path), re.IGNORECASE)
+        if match:
+            yield file_path
 
 
 def parse_arguments():
@@ -38,6 +45,10 @@ def parse_arguments():
         help=
         "The root directory containing session transcripts. Default value is './corpus'.",
         default='./corpus')
+    parser.add_argument(
+        '--include-files',
+        help='A regex pattern to filter which files will be included.',
+        default='20[0-9]{2}')
     parser.add_argument(
         '--session-template-xml',
         help="The file containing the XML template of a section.",
