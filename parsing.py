@@ -74,6 +74,8 @@ class Segment:
         """
         for child in self.paragraph:
             if child.tag == 'i':
+                if self.is_speaker:
+                    return get_element_text(child).replace(':', '')
                 return get_element_text(child)
         return None
 
