@@ -121,6 +121,7 @@ class SessionXmlBuilder:
         """Adds the session segments to the session description.
         """
         is_first = True
+        utterance = None
         for segment in self.parser.parse_session_segments():
             if segment.is_speaker:
                 note = etree.SubElement(self.debate_section, XmlElements.note)
@@ -147,6 +148,11 @@ class SessionXmlBuilder:
                               self.id_builder.get_speaker_id(speaker))
                 utterance.set(XmlAttributes.xml_id,
                               self.id_builder.build_utterance_id())
+            else:
+                seg = etree.SubElement(utterance, XmlElements.seg)
+                seg.set(XmlAttributes.xml_id,
+                        self.id_builder.build_segment_id())
+                seg.text = self.formatter.to_single_line(segment.get_text())
 
     def _build_session_heading(self):
         """Adds the head elements to session description.
@@ -323,6 +329,7 @@ class XmlIdBuilder:
         self.session_date = session_date
         self.root_id = None
         self.utterance_index = 0
+        self.segment_index = 0
 
     @property
     def session_id(self):
@@ -357,6 +364,17 @@ class XmlIdBuilder:
         """
         self.utterance_index = self.utterance_index + 1
         return "{}.u{}".format(self.session_id, self.utterance_index)
+
+    def build_segment_id(self):
+        """Builds the id of the current segment.
+
+        Returns
+        -------
+        segment_id: str
+            The id of the current segment.
+        """
+        self.segment_index = self.segment_index + 1
+        return "{}.seg{}".format(self.session_id, self.segment_index)
 
     def _build_session_id(self):
         """Builds the session id from the date and file prefix.
