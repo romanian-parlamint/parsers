@@ -72,4 +72,23 @@ if __name__ == '__main__':
     args = parse_arguments()
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
                         level=getattr(logging, args.log_level.upper()))
+    total, processed, failed = 0, 0, 0
+    for f in iter_files(args.input_directory,
+                        include_files=args.include_files):
+        input_file = str(f)
+        total = total + 1
+        logging.info("Building session XML from [{}].".format(input_file))
+        builder = SessionXmlBuilder(input_file, args.session_template_xml,
+                                    args.output_directory)
+        try:
+            builder.build_session_xml()
+            builder.write_to_file()
+            processed = processed + 1
+        except:
+            failed = failed + 1
+            logging.error(
+                "Failed to build XML transcription for file [{}].".format(
+                    input_file))
+    logging.info("Processed: {}/{} files.".format(processed, total))
+    logging.info("Failed: {}/{} files.".format(failed, total))
     logging.info("That's all folks!")
