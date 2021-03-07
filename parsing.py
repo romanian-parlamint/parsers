@@ -60,7 +60,9 @@ class Segment:
         text: str
             The text of the segment.
         """
-        return get_element_text(self.paragraph)
+        text = get_element_text(self.paragraph)
+        return re.sub(r'\s\([^)]+\)*', '', text, 0,
+                      re.MULTILINE | re.IGNORECASE)
 
     def get_note_text(self):
         """Returns the editorial note text.
