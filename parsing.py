@@ -218,12 +218,15 @@ class SessionParser:
         segments: iterable of Segment
             The segments that form the body of the session.
         """
-        if self.current_node is None:
-            logging.error(
-                'Current node not set in file [{}]. Cannot parse session body.'
-                .format(self.file_name))
-            return []
+        p = None
+        self.current_node = None
+        for p in self.html_root.iterdescendants(tag='p'):
+            s = Segment(p)
+            if s.is_speaker:
+                break
         segments = []
+        self.current_node = p
+        segments.append(Segment(self.current_node))
         while self.current_node is not None:
             self.current_node = self.current_node.getnext()
             if (self.current_node
