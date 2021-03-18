@@ -107,7 +107,7 @@ class SessionXmlBuilder:
 
         self._build_session_heading()
         self._build_session_body()
-
+        self._build_session_footer()
         self._set_session_stats()
         self._set_tag_usage()
 
@@ -116,6 +116,15 @@ class SessionXmlBuilder:
                            pretty_print=True,
                            encoding='utf-8',
                            xml_declaration=True))
+
+    def _build_session_footer(self):
+        """Adds the end time segment(s) to the session description.
+        """
+        end_time = self.parser.parse_session_end_time()
+        if end_time is not None:
+            note = etree.SubElement(self.debate_section, XmlElements.note)
+            note.set(XmlAttributes.element_type, "time")
+            note.text = self.formatter.to_single_line(end_time)
 
     def _build_session_body(self):
         """Adds the session segments to the session description.
