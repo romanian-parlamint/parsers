@@ -7,6 +7,7 @@ from lxml import etree
 from nltk.tokenize import word_tokenize
 from common import SessionType
 from common import StringFormatter
+from collections import deque
 
 
 def get_element_text(element):
@@ -233,6 +234,20 @@ class SessionParser:
                     is not None) and (self.current_node.getnext() is not None):
                 segments.append(Segment(self.current_node))
         return segments
+
+    def parse_session_end_time(self):
+        """Parses the segment containing end time of the session.
+
+        Returns
+        -------
+        session_end_time: str
+            The segment containing end time of the session.
+        """
+        segments = deque(self.html_root.iterdescendants(tag='p'), maxlen=1)
+        end_time_segment = segments.pop()
+        if end_time_segment is None:
+            return None
+        return get_element_text(end_time_segment)
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
