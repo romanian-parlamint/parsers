@@ -68,10 +68,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
-    args = parse_arguments()
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
-                        level=getattr(logging, args.log_level.upper()))
+def run(args):
     total, processed, failed = 0, 0, 0
     for f in iter_files(args.input_directory,
                         include_files=args.include_files):
@@ -92,3 +89,10 @@ if __name__ == '__main__':
     logging.info("Processed: {}/{} files.".format(processed, total))
     logging.info("Failed: {}/{} files.".format(failed, total))
     logging.info("That's all folks!")
+
+
+if __name__ == '__main__':
+    args = parse_arguments()
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
+                        level=getattr(logging, args.log_level.upper()))
+    run(args)
