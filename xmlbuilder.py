@@ -87,7 +87,11 @@ class SessionXmlBuilder:
         """
         if not file_name:
             file_name = "{}.xml".format(self.id_builder.session_id)
-        file_name = Path(self.output_directory, file_name)
+        year = str(self.session_date.year)
+        directory = Path(self.output_directory, year)
+        if not directory.exists():
+            directory.mkdir(parents=True, exist_ok=True)
+        file_name = Path(directory, file_name)
         self.element_tree.write(str(file_name),
                                 pretty_print=True,
                                 encoding='utf-8',
