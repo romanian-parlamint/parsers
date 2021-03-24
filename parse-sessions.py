@@ -60,6 +60,10 @@ def parse_arguments():
         "The directory where to output XML files. Default value is './output'.",
         default='./output')
     parser.add_argument(
+        '--group-by-year',
+        help='Specifies whether to group output files by year.',
+        action='store_true')
+    parser.add_argument(
         '-l',
         '--log-level',
         help="The level of details to print when running.",
@@ -79,7 +83,7 @@ def run(args):
                                     args.output_directory)
         try:
             builder.build_session_xml()
-            builder.write_to_file()
+            builder.write_to_file(group_by_year=args.group_by_year)
             processed = processed + 1
         except:
             failed = failed + 1

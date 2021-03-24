@@ -78,21 +78,28 @@ class SessionXmlBuilder:
             if div.get(XmlAttributes.element_type) == "debateSection":
                 self.debate_section = div
 
-    def write_to_file(self, file_name=None):
+    def write_to_file(self, file_name=None, group_by_year=False):
         """Writes the XML session to a file given by file_name or session id.
 
         Parameters
         ----------
         file_name: str, optional
             The name of the output file. Default is the session id.
+        group_by_year: boolean, optional
+            Specifies whether to group output files into directories by year.
+            Default is `False`.
         """
         if not file_name:
             file_name = "{}.xml".format(self.id_builder.session_id)
-        year = str(self.session_date.year)
-        directory = Path(self.output_directory, year)
-        if not directory.exists():
-            directory.mkdir(parents=True, exist_ok=True)
-        file_name = Path(directory, file_name)
+        if group_by_year:
+            year = str(self.session_date.year)
+            directory = Path(self.output_directory, year)
+            if not directory.exists():
+                directory.mkdir(parents=True, exist_ok=True)
+            file_name = Path(directory, file_name)
+        else:
+            file_name = Path(self.output_directory, file_name)
+
         self.element_tree.write(str(file_name),
                                 pretty_print=True,
                                 encoding='utf-8',
