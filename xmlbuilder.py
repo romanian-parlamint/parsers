@@ -30,6 +30,7 @@ class XmlElements:
     kinesic = '{http://www.tei-c.org/ns/1.0}kinesic'
     desc = '{http://www.tei-c.org/ns/1.0}desc'
     gap = '{http://www.tei-c.org/ns/1.0}gap'
+    idno = '{http://www.tei-c.org/ns/1.0}idno'
 
 
 class XmlAttributes:
@@ -107,6 +108,7 @@ class SessionXmlBuilder:
         self._set_session_id()
         self._set_session_title()
         self._set_meeting_info()
+        self._set_session_idno()
         self._set_session_date()
 
         self._build_session_heading()
@@ -249,6 +251,16 @@ class SessionXmlBuilder:
                 date.set(XmlAttributes.when,
                          format_date(self.session_date, "yyyy-MM-dd"))
                 date.text = format_date(self.session_date, "dd.MM.yyyy")
+
+    def _set_session_idno(self):
+        """Updates the vale of `idno` element.
+        """
+        for idno in self.xml.iterdescendants(tag=XmlElements.idno):
+            if idno.get(XmlAttributes.element_type) == 'URI':
+                date = format_date(self.session_date, "yyyyMMdd")
+                idno.text = etree.CDATA(
+                    "http://www.cdep.ro/pls/steno/steno2015.data?cam=2&dat={}".
+                    format(date))
 
     def _set_session_stats(self):
         """Updates the session statistics of the extent element.
