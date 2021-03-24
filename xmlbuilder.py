@@ -416,7 +416,6 @@ class XmlIdBuilder:
         session_id: str
             The id of the session.
         """
-        self.root_id = "-".join(
-            [self.prefix,
-             format_date(self.session_date, "yyyy-MM-dd"), "CD"])
-        return self.session_id
+        session_id = "{}_{}-CD".format(
+            self.prefix, format_date(self.session_date, "yyyy-MM-dd"))
+        return session_id
