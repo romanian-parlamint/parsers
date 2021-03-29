@@ -8,6 +8,7 @@ from parsing import SessionParser
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from common import StringFormatter
+import subprocess
 
 
 class XmlElements:
@@ -78,7 +79,10 @@ class SessionXmlBuilder:
             if div.get(XmlAttributes.element_type) == "debateSection":
                 self.debate_section = div
 
-    def write_to_file(self, file_name=None, group_by_year=False):
+    def write_to_file(self,
+                      file_name=None,
+                      group_by_year=False,
+                      use_xmllint=False):
         """Writes the XML session to a file given by file_name or session id.
 
         Parameters
@@ -87,6 +91,9 @@ class SessionXmlBuilder:
             The name of the output file. Default is the session id.
         group_by_year: boolean, optional
             Specifies whether to group output files into directories by year.
+            Default is `False`.
+        use_xmllint: boolean, optional
+            Specifies whether to use `xmllint` program for formatting the output xml.
             Default is `False`.
         """
         if not file_name:
@@ -100,10 +107,19 @@ class SessionXmlBuilder:
         else:
             file_name = Path(self.output_directory, file_name)
 
-        self.element_tree.write(str(file_name),
+        file_name = str(file_name)
+        self.element_tree.write(file_name,
                                 pretty_print=True,
                                 encoding='utf-8',
                                 xml_declaration=True)
+        if use_xmllint:
+            logging.info(
+                "Formatting file [{}] using xmllint.".format(file_name))
+            proc = subprocess.Popen(
+                ['xmllint', '--format', '--output', file_name, file_name],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            proc.wait()
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
