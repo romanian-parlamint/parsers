@@ -281,9 +281,8 @@ class SessionXmlBuilder:
         for idno in self.xml.iterdescendants(tag=XmlElements.idno):
             if idno.get(XmlAttributes.element_type) == 'URI':
                 date = format_date(self.session_date, "yyyyMMdd")
-                idno.text = etree.CDATA(
-                    "http://www.cdep.ro/pls/steno/steno2015.data?cam=2&dat={}".
-                    format(date))
+                idno.text = "http://www.cdep.ro/pls/steno/steno2015.data?cam=2&dat={}".format(
+                    date)
 
     def _set_session_stats(self):
         """Updates the session statistics of the extent element.
