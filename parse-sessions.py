@@ -63,6 +63,9 @@ def parse_arguments():
         '--group-by-year',
         help='Specifies whether to group output files by year.',
         action='store_true')
+    parser.add_argument('--no-xmllint',
+                        help='Do not call xmllint to format output files.',
+                        action='store_true')
     parser.add_argument(
         '-l',
         '--log-level',
@@ -83,7 +86,8 @@ def run(args):
                                     args.output_directory)
         try:
             builder.build_session_xml()
-            builder.write_to_file(group_by_year=args.group_by_year)
+            builder.write_to_file(group_by_year=args.group_by_year,
+                                  use_xmllint=not args.no_xmllint)
             processed = processed + 1
         except:
             failed = failed + 1
