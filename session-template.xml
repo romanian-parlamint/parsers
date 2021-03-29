@@ -46,14 +46,8 @@
       </publicationStmt>
       <sourceDesc>
         <bibl>
-          <title>Multilingual comparable corpora of parliamentary debates ParlaMint 1.0</title>
-          <idno type="handle">http://hdl.handle.net/11356/1345</idno>
-        </bibl>
-        <bibl>
           <title type="main" xml:lang="en">Minutes of the meetings of the Romanian Parliament</title>
           <title type="main" xml:lang="ro">Stenograme ale şedinţelor din Parlamentul României</title>
-          <edition xml:lang="ro">Stenograma oficială a ședinței</edition>
-          <edition xml:lang="en">Official session record</edition>
           <idno type="URI"></idno>
           <date when="2020-01-28">28.01.2020</date>
         </bibl>
