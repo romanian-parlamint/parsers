@@ -161,10 +161,13 @@ class SessionXmlBuilder:
         is_first = True
         utterance = None
         for segment in self.parser.parse_session_segments():
+            text = segment.get_text()
+            if len(text) == 0:
+                continue
             if segment.is_speaker:
                 note = etree.SubElement(self.debate_section, XmlElements.note)
                 note.set(XmlAttributes.element_type, "speaker")
-                note.text = self.formatter.to_single_line(segment.get_text())
+                note.text = self.formatter.to_single_line(text)
 
                 if segment.has_note:
                     note = etree.SubElement(self.debate_section,
@@ -190,7 +193,7 @@ class SessionXmlBuilder:
                 seg = etree.SubElement(utterance, XmlElements.seg)
                 seg.set(XmlAttributes.xml_id,
                         self.id_builder.build_segment_id())
-                seg.text = self.formatter.to_single_line(segment.get_text())
+                seg.text = self.formatter.to_single_line(text)
 
     def _build_session_heading(self):
         """Adds the head elements to session description.
