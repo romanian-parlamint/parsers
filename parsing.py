@@ -50,8 +50,9 @@ class Segment:
         """
         if not self.is_speaker:
             return None
-        return re.sub(r'domnul|doamna|(\(.+\)*):', '', self.full_text, 0,
-                      re.MULTILINE | re.IGNORECASE)
+        speaker = re.sub(r'domnul|doamna|(\(.+\)*)?:', '', self.full_text, 0,
+                         re.MULTILINE | re.IGNORECASE)
+        return speaker
 
     def get_text(self):
         """Returns the text of the current segment.
