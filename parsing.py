@@ -82,6 +82,57 @@ class Segment:
         return None
 
 
+class TableRowSegment:
+    """Represents a segment of a  session extracted from a table row.
+    """
+    def __init__(self, table_row):
+        self.table_row = table_row
+
+    @property
+    def is_speaker(self):
+        """Returns true if the segment is a speaker segment.
+        """
+        return False
+
+    @property
+    def has_note(self):
+        """Returns true if the current segment contains a note.
+        """
+        return False
+
+    def get_speaker(self):
+        """Returns the speaker name if the current segment is a speaker.
+
+        Returns
+        -------
+        speaker: str
+            The speaker name if current segment is a speaker; otherwise None.
+        """
+        return None
+
+    def get_text(self):
+        """Returns the text of the current segment.
+
+        Returns
+        -------
+        text: str
+            The text of the segment.
+        """
+        text = get_element_text(self.table_row)
+        return re.sub(r'\s\([^)]+\)*', '', text, 0,
+                      re.MULTILINE | re.IGNORECASE)
+
+    def get_note_text(self):
+        """Returns the editorial note text.
+
+        Returns
+        -------
+        text: str
+            The text of the note.
+        """
+        return None
+
+
 class SessionParser:
     """Class responsible for parsing a session html file.
     """
@@ -231,6 +282,9 @@ class SessionParser:
         segments.append(Segment(self.current_node))
         while self.current_node is not None:
             self.current_node = self.current_node.getnext()
+            if (self.current_node is not None) and (self._contains_table(
+                    self.current_node)):
+                segments.extend(self._parse_table_segments(self.current_node))
             if (self.current_node
                     is not None) and (self.current_node.getnext() is not None):
                 segments.append(Segment(self.current_node))
@@ -249,6 +303,41 @@ class SessionParser:
         if end_time_segment is None:
             return None
         return get_element_text(end_time_segment)
+
+    def _parse_table_segments(self, elem):
+        """Converts the rows of the table from within the specified element to segments.
+
+        Parameters
+        ----------
+        element: etree element
+            The element containing table rows.
+
+        Returns
+        -------
+        segments: iterable of TableRowSegment
+            The collection of parsed segments.
+        """
+        if not self._contains_table(elem):
+            return []
+
+        return [TableRowSegment(tr) for tr in elem.iterdescendants(tag='tr')]
+
+    def _contains_table(self, elem):
+        """Checks if the current element contains a table.
+
+        Parameters
+        ----------
+        elem: etree element
+            The element to check.
+
+        Returns
+        -------
+        True if element contains table; False otherwise.
+        """
+        if elem.tag == 'table':
+            return True
+        table = [elem for elem in elem.iterdescendants(tag='table')]
+        return len(table) > 0
 
     def _parse_date_and_type(self):
         """Parses the session date and type from file path.
