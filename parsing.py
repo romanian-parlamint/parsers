@@ -7,6 +7,7 @@ from lxml import etree
 from nltk.tokenize import word_tokenize
 from common import SessionType
 from common import StringFormatter
+from common import Resources
 from collections import deque
 
 
@@ -237,9 +238,10 @@ class SessionParser:
         """
         for para in self.html_root.iterdescendants(tag='p'):
             text = self.formatter.normalize(get_element_text(para))
-            if 'ședința a început la ora' in text.lower():
+            if Resources.SessionStartMark in text.lower():
                 self.current_node = para
                 return text
+
         logging.error(
             "Could not parse session start time for file [{}].".format(
                 self.file_name))
