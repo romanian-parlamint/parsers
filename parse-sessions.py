@@ -37,6 +37,30 @@ def iter_files(directory, file_type='html', include_files=None):
             yield file_path
 
 
+def run(args):
+    total, processed, failed = 0, 0, 0
+    for f in iter_files(args.input_directory,
+                        include_files=args.include_files):
+        input_file = str(f)
+        total = total + 1
+        logging.info("Building session XML from [{}].".format(input_file))
+        builder = SessionXmlBuilder(input_file, args.session_template_xml,
+                                    args.output_directory)
+        try:
+            builder.build_session_xml()
+            builder.write_to_file(group_by_year=args.group_by_year,
+                                  use_xmllint=not args.no_xmllint)
+            processed = processed + 1
+        except:
+            failed = failed + 1
+            logging.error(
+                "Failed to build XML transcription for file [{}].".format(
+                    input_file))
+    logging.info("Processed: {}/{} files.".format(processed, total))
+    logging.info("Failed: {}/{} files.".format(failed, total))
+    logging.info("That's all folks!")
+
+
 def parse_arguments():
     parser = ArgumentParser()
     parser.add_argument(
@@ -75,32 +99,14 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def run(args):
-    total, processed, failed = 0, 0, 0
-    for f in iter_files(args.input_directory,
-                        include_files=args.include_files):
-        input_file = str(f)
-        total = total + 1
-        logging.info("Building session XML from [{}].".format(input_file))
-        builder = SessionXmlBuilder(input_file, args.session_template_xml,
-                                    args.output_directory)
-        try:
-            builder.build_session_xml()
-            builder.write_to_file(group_by_year=args.group_by_year,
-                                  use_xmllint=not args.no_xmllint)
-            processed = processed + 1
-        except:
-            failed = failed + 1
-            logging.error(
-                "Failed to build XML transcription for file [{}].".format(
-                    input_file))
-    logging.info("Processed: {}/{} files.".format(processed, total))
-    logging.info("Failed: {}/{} files.".format(failed, total))
-    logging.info("That's all folks!")
-
-
 if __name__ == '__main__':
     args = parse_arguments()
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
                         level=getattr(logging, args.log_level.upper()))
-    run(args)
+    # run(args)
+    # input_file = './corpus/2000/02/s01-02.htm'
+    input_file = './corpus/2001/06/s21-06.html'
+    builder = SessionXmlBuilder(input_file, args.session_template_xml,
+                                args.output_directory)
+    builder.build_session_xml()
+    builder.write_to_file(group_by_year=False, use_xmllint=not args.no_xmllint)
