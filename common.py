@@ -24,6 +24,7 @@ class Resources:
     SessionHeading = "Ședinta Camerei Deputaților din {}"
     ToC = "SUMAR"
     SessionStartMark = "ședința a început la ora"
+    SessionEndMark = "s-au încheiat la ora"
 
 
 class StringFormatter:

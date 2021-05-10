@@ -149,6 +149,7 @@ class SessionParser:
         self.file_name = str(html_file) if isinstance(html_file,
                                                       Path) else html_file
         self.html_root = self._parse_html(html_file)
+        self.end_time_segment = None
         logging.debug("In SessionParser. HTML root is:\n{}".format(
             etree.tostring(self.html_root, method='html', pretty_print=True)))
 
@@ -282,13 +283,15 @@ class SessionParser:
         segments = []
         self.current_node = p
         segments.append(Segment(self.current_node))
+        self.parse_session_end_time()
         while self.current_node is not None:
             self.current_node = self.current_node.getnext()
+            if self.current_node == self.end_time_segment:
+                self.current_node = None
             if (self.current_node is not None) and (self._contains_table(
                     self.current_node)):
                 segments.extend(self._parse_table_segments(self.current_node))
-            if (self.current_node
-                    is not None) and (self.current_node.getnext() is not None):
+            if (self.current_node is not None):
                 segments.append(Segment(self.current_node))
         return segments
 
@@ -300,11 +303,25 @@ class SessionParser:
         session_end_time: str
             The segment containing end time of the session.
         """
-        segments = deque(self.html_root.iterdescendants(tag='p'), maxlen=1)
-        end_time_segment = segments.pop()
-        if end_time_segment is None:
-            return None
-        return get_element_text(end_time_segment)
+        if self.end_time_segment is not None:
+            text = self.formatter.normalize(
+                get_element_text(self.end_time_segment))
+            return text
+
+        # Take at most 5 elements from the end of the HTML tree
+        # and check if any of them match the end session mark.
+        segments = deque(self.html_root.iterdescendants(tag='p'), maxlen=5)
+        para = segments.pop()
+        while para is not None:
+            text = self.formatter.normalize(get_element_text(para))
+            if Resources.SessionEndMark in text.lower():
+                self.end_time_segment = para
+                return text
+            para = segments.pop()
+
+        logging.error("Could not parse session end time for file [{}].".format(
+            self.file_name))
+        return None
 
     def _parse_table_segments(self, elem):
         """Converts the rows of the table from within the specified element to segments.
