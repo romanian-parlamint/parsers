@@ -78,7 +78,6 @@ def run(args):
         return
     tbl = tbl[0]
     df = parse_deputies_table(tbl)
-    print(df[df.mandate == 'deputat'])
 
 
 def parse_arguments():
