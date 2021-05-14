@@ -1,6 +1,24 @@
 import re
 
 
+def build_speaker_id(speaker_name):
+    """Builds the id of the speaker from its name.
+
+    Parameters
+    ----------
+    speaker_name: str
+        The name of the speaker.
+
+    Returns
+    -------
+    speaker_id: str
+        The id of the speaker.
+    """
+    canonical_name = re.sub(r'\s+', '-', speaker_name, 0, re.MULTILINE)
+    speaker_id = "#{}".format(canonical_name)
+    return speaker_id
+
+
 class SessionType:
     """Encodes the values for session types.
     """

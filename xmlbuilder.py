@@ -8,6 +8,7 @@ from parsing import SessionParser
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from common import StringFormatter
+from common import build_speaker_id
 import subprocess
 
 
@@ -420,7 +421,7 @@ class XmlIdBuilder:
         speaker_id: str
             The id of the speaker.
         """
-        return "#{}".format(re.sub(r'\s+', '-', speaker, 0, re.MULTILINE))
+        return build_speaker_id(speaker)
 
     def build_utterance_id(self):
         """Builds the id of the current utterance.
