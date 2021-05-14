@@ -9,10 +9,7 @@ from common import SessionType
 from common import StringFormatter
 from common import Resources
 from collections import deque
-
-
-def get_element_text(element):
-    return ''.join(element.itertext())
+from common import get_element_text
 
 
 class Segment:

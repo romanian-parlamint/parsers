@@ -3,6 +3,7 @@ import requests
 import logging
 from lxml import etree, html
 import pandas as pd
+from common import get_element_text
 
 
 class XPathStrings:
@@ -10,10 +11,6 @@ class XPathStrings:
     DeputiesTableBody = "//div[@class='grup-parlamentar-list grupuri-parlamentare-list']/table/tbody"
     TableRow = ".//tr"
     RowColumn = ".//td"
-
-
-def get_element_text(element):
-    return ''.join(element.itertext())
 
 
 def parse_deputies_table(tbody):

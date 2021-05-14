@@ -19,6 +19,23 @@ def build_speaker_id(speaker_name):
     return speaker_id
 
 
+def get_element_text(element):
+    """Builds the element text by iterating through child elements.
+
+    Parameters
+    ----------
+    element: lxml.Element
+        The element for which to build text.
+
+    Returns
+    -------
+    text: str
+        The inner text of the element.
+    """
+    text = ''.join(element.itertext())
+    return text
+
+
 class SessionType:
     """Encodes the values for session types.
     """
