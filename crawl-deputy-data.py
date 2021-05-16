@@ -30,7 +30,7 @@ def parse_deputies_table(tbody):
 
     idx, name, period, mandate = None, None, None, None
     data = {
-        'row_num': [],
+        'order_num': [],
         'name': [],
         'period': [],
         'mandate': [],
@@ -54,14 +54,13 @@ def parse_deputies_table(tbody):
         logging.info("Values: [{}, {}, {}, {}]".format(deputy_num, deputy_name,
                                                        period_text,
                                                        mandate_text))
-        data['row_num'].append(deputy_num)
+        data['order_num'].append(deputy_num)
         data['name'].append(deputy_name)
         data['period'].append(period_text)
         data['mandate'].append(mandate_text)
         data['period_link'].append(href)
     logging.info("Finished parsing deputies table.")
     records = pd.DataFrame.from_dict(data)
-    print(records)
     return records
 
 
