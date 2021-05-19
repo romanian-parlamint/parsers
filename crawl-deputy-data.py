@@ -4,13 +4,13 @@ import logging
 from lxml import etree, html
 import pandas as pd
 from common import get_element_text
+from common import OrganizationType
 
 
 class XPathStrings:
-    DeputiesTable = "//div[@class='grup-parlamentar-list grupuri-parlamentare-list']/table"
     DeputiesTableBody = "//div[@class='grup-parlamentar-list grupuri-parlamentare-list']/table/tbody"
-    TableRow = ".//tr"
-    RowColumn = ".//td"
+    DeputyInfoDiv = "//div[@id='oldDiv']"
+    ProfilePic = "//a[@class='highslide ']/img"  # The space at te end of class name is also present in the page!
 
 
 def parse_deputies_table(tbody):
