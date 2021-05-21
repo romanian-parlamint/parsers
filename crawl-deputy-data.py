@@ -17,6 +17,7 @@ class XPathStrings:
     DeputyInfoDiv = "//div[@id='oldDiv']"
     ProfilePic = "//a[@class='highslide ']/img"  # The space at te end of class name is also present in the page!
     InfoSections = "//div[@class='boxDep clearfix']"
+    DeputyName = "//div[@class='boxTitle']/h1"
 
 
 class MandateType:
@@ -108,6 +109,30 @@ class MandateInfoParser:
             affiliations.append(self._parse_affiliation(text))
 
         return affiliations
+
+    def parse_names(self):
+        """Parses the first and last names of the deputy.
+
+        Returns
+        -------
+        (first_name, last_name): tuple of str
+            The tuple containing first and last names of the deputy.
+        """
+        name_element = self.html_root.xpath(XPathStrings.DeputyName)
+        if name_element is None:
+            logging.error(
+                "Could not find the element containing deputy name in page '{}'."
+                .format(self.url))
+            return None, None
+        name_element = name_element[0]
+        first_name_parts, last_name_parts = [], []
+        text = get_element_text(name_element)
+        for part in text.split():
+            if part.isupper():
+                last_name_parts.append(part)
+            else:
+                first_name_parts.append(part)
+        return ' '.join(first_name_parts), ' '.join(last_name_parts)
 
     def _parse_affiliation(self, text):
         """Parses the organization name and dates for an affiliation period.
