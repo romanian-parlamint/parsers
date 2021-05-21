@@ -68,6 +68,7 @@ class Resources:
     ToC = "SUMAR"
     SessionStartMark = "ședința a început la ora"
     SessionEndMark = "s-au încheiat la ora"
+    AffiliationStartDateMark = "din"
 
 
 class StringFormatter:
