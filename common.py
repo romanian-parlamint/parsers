@@ -36,6 +36,14 @@ def get_element_text(element):
     return text
 
 
+class OrganizationType:
+    """Represents types of organizations to which deputies are affiliated.
+    """
+    PoliticalParty = "politicalParty"
+    EthnicCommunity = "ethnicCommunity"
+    Independent = "independent"
+
+
 class SessionType:
     """Encodes the values for session types.
     """
