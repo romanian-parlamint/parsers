@@ -9,7 +9,7 @@ from common import OrganizationType
 from urllib.parse import urlparse, parse_qs
 from collections import namedtuple
 from datetime import date
-from common import Resources
+from common import Resources, StringFormatter
 
 
 class XPathStrings:
@@ -66,6 +66,7 @@ class MandateInfoParser:
             'noi': 11,
             'dec': 12
         }
+        self.formatter = StringFormatter()
         self.html_root = self._load_page(self.url)
 
     def parse_deputy_id(self):
@@ -91,13 +92,13 @@ class MandateInfoParser:
             The collection of affiliations for the current term.
         """
         logging.info("Parsing affiliations for page '{}'.".format(self.url))
-        affiliation_section = self.html_root.xpath(XPathStrings.InfoSections)
-        if (affiliation_section is None) or (len(affiliation_section) < 2):
+        affiliation_section = self._find_affiliations_section()
+        if affiliation_section is None:
             logging.error(
                 "Could not find affiliations section for page '{}'.".format(
                     self.url))
             return []
-        affiliation_section = affiliation_section[1]
+
         title = self._get_affiliation_title(affiliation_section)
         logging.info(
             "Title of the affiliations section for page '{}' is: '{}'.".format(
@@ -133,6 +134,26 @@ class MandateInfoParser:
             else:
                 first_name_parts.append(part)
         return ' '.join(first_name_parts), ' '.join(last_name_parts)
+
+    def _find_affiliations_section(self):
+        """Iterates the HTML tree to find the section containing the affiliation info.
+
+        Returns
+        -------
+        affiliation_section: etree.Element
+            The HTML element containing affiliation info or None.
+        """
+        for elem in self.html_root.xpath(XPathStrings.InfoSections):
+            for heading in elem.iterdescendants(tag='h3'):
+                text = get_element_text(heading)
+                text = self.formatter.normalize(text)
+                if Resources.PoliticalParty in text or Resources.PoliticalGroup in text:
+                    return elem
+
+        logging.error(
+            "Could not find the affiliation section for page '{}'.".format(
+                self.url))
+        return None
 
     def _parse_affiliation(self, text):
         """Parses the organization name and dates for an affiliation period.
@@ -207,7 +228,6 @@ class MandateInfoParser:
         match = self.date_regex.search(date_str)
         if match is None:
             logging.info("Date regex did not match the provided string.")
-            print("no match")
             return None
 
         month = match.group(1).lower().strip('.')
