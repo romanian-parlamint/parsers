@@ -15,7 +15,7 @@ from common import Resources, StringFormatter
 class XPathStrings:
     DeputiesTableBody = "//div[@class='grup-parlamentar-list grupuri-parlamentare-list']/table/tbody"
     DeputyInfoDiv = "//div[@id='oldDiv']"
-    ProfilePic = "//a[@class='highslide ']/img"  # The space at te end of class name is also present in the page!
+    ProfilePic = "//div[@class='profile-pic-dep']/a"
     InfoSections = "//div[@class='boxDep clearfix']"
     DeputyName = "//div[@class='boxTitle']/h1"
 
@@ -134,6 +134,23 @@ class MandateInfoParser:
             else:
                 first_name_parts.append(part)
         return ' '.join(first_name_parts), ' '.join(last_name_parts)
+
+    def parse_profile_picture(self):
+        """Retrieves the URL of the profile picture.
+
+        Returns
+        -------
+        img_url: str
+            The URL of the profile pictrure if found; otherwise None.
+        """
+        anchor_element = self.html_root.xpath(XPathStrings.ProfilePic)
+        if anchor_element is None:
+            logging.warning(
+                "Could not parse the profile picture for page '{}'.".format(
+                    self.url))
+            return None
+        anchor_element = anchor_element[0]
+        return anchor_element.get('href')
 
     def _find_affiliations_section(self):
         """Iterates the HTML tree to find the section containing the affiliation info.
