@@ -212,13 +212,14 @@ class MandateInfoParser:
 
         Returns
         -------
-        (start_date, end_date): tuple of datetime.date
-            The start and end dates of the affiliation. End date may be None.
+        (start_date, end_date): tuple of str
+            The start and end dates of the affiliation in the format yyyy[-mm], i.e. the month part is optional.
+            End date may be None meaning that the mandate is ongoing.
         """
-        start_date = date(self.start_year, 1, 1)
+        start_date = str(self.start_year)
         end_date = None
         if self.end_year is not None:
-            end_date = date(self.end_year, 1, 1)
+            end_date = str(self.end_year)
         for date_str in date_strings:
             if Resources.AffiliationStartDateMark in date_str:
                 start_date = self._parse_date(date_str)
@@ -237,7 +238,7 @@ class MandateInfoParser:
 
         Returns
         -------
-        dt: datetime.date
+        dt: str
             The date parsed from the provided string or None.
         """
         logging.info(
@@ -252,7 +253,7 @@ class MandateInfoParser:
         logging.info(
             "The following date parts were found: month={}, year={}.".format(
                 month, year))
-        return date(year, self.month_map[month], 1)
+        return '-'.join([year, self.month_map[month]])
 
     def _get_affiliation_title(self, affiliation):
         """Returns the title of affiliation section.
