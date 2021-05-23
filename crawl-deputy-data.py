@@ -346,19 +346,6 @@ def parse_deputies_table(tbody):
     return records
 
 
-def parse_deputy_mandate_info(html, url):
-    container = html.xpath(XPathStrings.DeputyInfoDiv)
-    if container is None:
-        logging.error(
-            "Could not find container div using XPath {} for page {}.".format(
-                XPathStrings.DeputyInfoDiv, url))
-        # return
-    img = container.xpath(XPathStrings.ProfilePic)
-    if img is None:
-        logging.warning(
-            "Could not parse image of the deputy from page at {}.".format(url))
-
-
 def run(args):
     start_page = requests.get(args.start_url)
     page = html.fromstring(start_page.content)
