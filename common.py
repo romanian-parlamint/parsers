@@ -69,6 +69,8 @@ class Resources:
     SessionStartMark = "ședința a început la ora"
     SessionEndMark = "s-au încheiat la ora"
     AffiliationStartDateMark = "din"
+    PoliticalParty = "Formațiunea politică"
+    PoliticalGroup = "Grupul parlamentar"
 
 
 class StringFormatter:
