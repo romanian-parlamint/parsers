@@ -47,7 +47,6 @@ class MandateInfoParser:
             The end year of the term/mandate. Default is None which means that the term is ongoing.
         """
         self.url = url
-        self.name = name
         self.start_year = start_year
         self.end_year = end_year
         self.date_regex = re.compile(r'([a-z]{3})\.\s+([0-9]{4})',
@@ -106,7 +105,7 @@ class MandateInfoParser:
         info_table = next(affiliation_section.iterdescendants(tag='table'))
         affiliations = []
         for row in info_table:
-            text = get_element_text(row)
+            text = self.formatter.normalize(get_element_text(row))
             affiliations.append(self._parse_affiliation(text))
 
         return affiliations
@@ -128,6 +127,7 @@ class MandateInfoParser:
         name_element = name_element[0]
         first_name_parts, last_name_parts = [], []
         text = get_element_text(name_element)
+        text = self.formatter.normalize(text)
         for part in text.split():
             if part.isupper():
                 last_name_parts.append(part)
