@@ -204,8 +204,8 @@ class SessionParser:
         """
         heading_elem = None
         found = False
-        for para in self.html_root.iterdescendants(tag='p'):
-            text = get_element_text(para)
+        for para in self.html_root.iterdescendants():
+            text = self.formatter.normalize(get_element_text(para))
             if '[1]' in text:
                 found = True
                 break
@@ -214,16 +214,12 @@ class SessionParser:
                 "Could not find anchor point for session heading in file [{}]".
                 format(self.file_name))
             return None
-        found = False
-        while (para is not None) and (para.tag != 'table') and (not found):
-            para = para.getprevious()
-            text = get_element_text(para)
-            found = 'stenograma' in text.lower()
-        if not found:
-            logging.error(
-                "Could not parse session heading in file [{}].".format(
-                    self.file_name))
-            return None
+        text = text[:text.find('[1]')]
+        text = text.replace(Resources.TranscriptSpaced, Resources.Transcript)
+        text = text.replace(Resources.Transcript.upper(), Resources.Transcript)
+        idx = text.lower().find(Resources.Transcript.lower())
+        text = text[idx:]
+        text = self.formatter.to_single_line(text)
         return text
 
     def parse_session_start_time(self):

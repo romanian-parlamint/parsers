@@ -67,11 +67,13 @@ class Resources:
     SessionHeading = "Ședinta Camerei Deputaților din {}"
     ToC = "SUMAR"
     SessionStartMark = "ședința a început la ora"
-    SessionEndMark = "s-au încheiat la ora"
+    SessionEndMark = "încheiat la ora"
     AffiliationStartDateMark = "din"
     PoliticalParty = "Formațiunea politică"
     PoliticalGroup = "Grupul parlamentar"
     PresentTime = "prezent"
+    Transcript = "Stenograma"
+    TranscriptSpaced = "S T E N O G R A M A"
 
 
 class StringFormatter:
