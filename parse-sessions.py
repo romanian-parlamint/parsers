@@ -103,10 +103,4 @@ if __name__ == '__main__':
     args = parse_arguments()
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
                         level=getattr(logging, args.log_level.upper()))
-    # run(args)
-    # input_file = './corpus/2000/02/s01-02.htm'
-    input_file = './corpus/2001/06/s21-06.html'
-    builder = SessionXmlBuilder(input_file, args.session_template_xml,
-                                args.output_directory)
-    builder.build_session_xml()
-    builder.write_to_file(group_by_year=False, use_xmllint=not args.no_xmllint)
+    run(args)
