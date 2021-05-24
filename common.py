@@ -71,6 +71,7 @@ class Resources:
     AffiliationStartDateMark = "din"
     PoliticalParty = "Formațiunea politică"
     PoliticalGroup = "Grupul parlamentar"
+    PresentTime = "prezent"
 
 
 class StringFormatter:
