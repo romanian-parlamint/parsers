@@ -367,6 +367,10 @@ class DeputyAffiliationCrawler:
             The period string containing start and end year of a mandate.
         """
         start_year, end_year = self._parse_mandate_period(period)
+        if (end_year is not None) and (end_year < 2000):
+            logging.info("Skipping period before 2000.")
+            return
+
         logging.info(
             "Parsing mandate info from URL {} with start year={}, end year={}."
             .format(url, start_year, end_year))
