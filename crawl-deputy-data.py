@@ -345,6 +345,8 @@ class DeputyAffiliationCrawler:
                 logging.error(
                     "Could not parse mandate info from page {}.".format(url))
                 logging.error(ex)
+                self._add_record(-1, None, None, None, None, None, None, None,
+                                 url)
                 should_save = True
             should_save = should_save or (row.Index % 10 == 0)
             if should_save and (save_records is not None):
@@ -352,7 +354,7 @@ class DeputyAffiliationCrawler:
                 save_records(self.deputy_info)
                 should_save = False
 
-            logging.info("Crawling finished.")
+        logging.info("Crawling finished.")
 
     def _fetch_records(self, url, period):
         """Loads the deputy info records from the specified url and period.
