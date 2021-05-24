@@ -8,11 +8,29 @@
         <title type="sub" xml:lang="ro">Stenograma ședinței Camerei Deputaților din România din 28 ianuarie 2020</title>
         <title type="sub" xml:lang="en">Minutes of the session of the Chamber of Deputies of Romania, Term 8, 28.01.2020 </title>
         <meeting n="20200128" corresp="#CD" ana="#parla.meeting.regular">Camera Deputaților</meeting>
-        <respStmt>
-          <persName>Petru Rebeja</persName>
-          <resp xml:lang="ro">Codare corpus TEI</resp>
-          <resp xml:lang="en">TEI corpus encoding</resp>
-        </respStmt>
+	<respStmt>
+	  <persName>Petru Rebeja</persName>
+	  <persName>Mădălina Chitez</persName>
+	  <persName>Roxana Rogobete</persName>
+	  <persName>Andreea Dincă</persName>
+          <resp xml:lang="ro">Definirea etapelor proiectului și elaborarea caietului de sarcini.</resp>
+          <resp xml:lang="en">Project set-up and methodology.</resp>
+	</respStmt>
+	<respStmt>
+	  <persName>Petru Rebeja</persName>
+	  <persName>Mădălina Chitez</persName>
+	  <persName>Roxana Rogobete</persName>
+	  <persName>Andreea Dincă</persName>
+          <resp xml:lang="ro">Colectare de date.</resp>
+          <resp xml:lang="en">Data retrieval.</resp>
+	</respStmt>
+	<respStmt>
+	  <persName>Petru Rebeja</persName>
+          <resp xml:lang="ro">Definirea etapelor de procesare.</resp>
+          <resp xml:lang="en">Defining data processing pipeline.</resp>
+          <resp xml:lang="ro">Implementarea procesului de procesare a datelor și codarea corpusului în format TEI.</resp>
+          <resp xml:lang="en">Data processing pipeline implementation, and encoding corpus in TEI format.</resp>
+	</respStmt>
         <funder>
           <orgName xml:lang="ro">Infrastructura de cercetare CLARIN</orgName>
           <orgName xml:lang="en">The CLARIN research infrastructure</orgName>
