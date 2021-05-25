@@ -4,11 +4,11 @@ from babel.dates import format_date
 import re
 from lxml import etree
 from common import Resources
-from parsing import SessionParser
+from parsing import parse_organization_name, SessionParser
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from common import StringFormatter
-from common import build_speaker_id
+from common import build_speaker_id, OrganizationType
 import subprocess
 
 
@@ -33,6 +33,9 @@ class XmlElements:
     desc = '{http://www.tei-c.org/ns/1.0}desc'
     gap = '{http://www.tei-c.org/ns/1.0}gap'
     idno = '{http://www.tei-c.org/ns/1.0}idno'
+    listOrg = '{http://www.tei-c.org/ns/1.0}listOrg'
+    org = '{http://www.tei-c.org/ns/1.0}org'
+    orgName = '{http://www.tei-c.org/ns/1.0}orgName'
 
 
 class XmlAttributes:
@@ -47,6 +50,8 @@ class XmlAttributes:
     occurs = 'occurs'
     ana = 'ana'
     who = 'who'
+    full = 'full'
+    role = 'role'
 
 
 class SessionXmlBuilder:
@@ -413,7 +418,103 @@ class RootXmlBuilder:
         corpus_dir: str, required
             The path to the directory containing corpus files.
         """
-        self.corpus_dir = corpus_dir
+        self.corpus_dir = Path(corpus_dir)
+        self._build_organizations_list()
+
+    def _build_organizations_list(self):
+        """Builds the list of organizations from affiliation records.
+        """
+        organizations = self.deputy_affiliations.organization.unique()
+        orgList = None
+        for elem in self.corpus_root.iterdescendants(tag=XmlElements.listOrg):
+            orgList = elem
+            break
+        if orgList is None:
+            logging.error("Could not find element listOrg in template file.")
+            return
+        for org in organizations:
+            name, acronym = parse_organization_name(org)
+            role = self._get_organization_role(name)
+            self._build_organization_element(name, acronym, role)
+
+    def _build_organization_element(self, parent, name, acronym, role):
+        """Builds an `org` element and adds it to the parent element.
+
+        Parameters
+        ----------
+        parent: etree.Element, required
+            The parent element to which to append the newly created `org` element.
+            Usually it's the `listOrg` element.
+        name: str, required
+            Full name of the organization.
+        acronym: str, required
+            The acronym of the organization. Can be None.
+        role: str, required
+            The role of the organization.
+        """
+        org_element = etree.SubElement(parent, XmlElements.org)
+        org_element.set(XmlAttributes.xml_id,
+                        self._build_organization_id(name, acronym))
+        org_element.set(XmlAttributes.role, role)
+        name_element = etree.SubElement(org_element, XmlElements.orgName)
+        name_element.set(XmlAttributes.full, "yes")
+        name_element.set(XmlAttributes.lang, "ro")
+        name_element.text = name
+
+        if (acronym is not None) and (len(acronym) > 0):
+            acronym_element = etree.SubElement(org_element,
+                                               XmlElements.orgName)
+            acronym_element.set(XmlAttributes.full, "init")
+            acronym_element.text = acronym
+
+    def _get_organization_role(self, organization_name):
+        """Returns the organization role based on its name.
+
+        Parameters
+        ----------
+        organization_name: str, required
+            The name of the organization.
+
+        Returns
+        -------
+        role: str
+            The role of the organization.
+        """
+        if Resources.PoliticalGroupOfEthnicMinorities in organization_name:
+            return OrganizationType.EthnicCommunity
+        if Resources.PoliticalGroup in organization_name:
+            return OrganizationType.PoliticalGroup
+        if OrganizationType.Independent.lower() in organization_name.lower():
+            return OrganizationType.Independent
+        if Resources.Unaffiliated.lower() == organization_name.lower():
+            return OrganizationType.Independent
+        return OrganizationType.PoliticalParty
+
+    def _build_organization_id(self, name, acronym):
+        """Builds the id of an organization based on its properties.
+
+        Parameters
+        ----------
+        name: str, required
+            The full name of the organization.
+        acronym: str, required
+            The acronym of the organization.
+
+        Returns
+        -------
+        id: str
+            The id of the organization.
+        """
+        pattern = "RoParl.Org.{}"
+        if (acronym is not None) and (len(acronym) > 0):
+            return pattern.format(acronym)
+
+        parts = name.split()
+        if len(parts) > 1:
+            acronym = [part[0].upper() for part in parts]
+            return pattern.format(acronym)
+
+        return pattern.format(name.capitalize())
 
 
 class XmlIdBuilder:

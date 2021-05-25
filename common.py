@@ -39,9 +39,10 @@ def get_element_text(element):
 class OrganizationType:
     """Represents types of organizations to which deputies are affiliated.
     """
-    PoliticalParty = "politicalParty"
-    EthnicCommunity = "ethnicCommunity"
-    Independent = "independent"
+    Independent = 'independent'
+    PoliticalGroup = 'politicalGroup'
+    PoliticalParty = 'politicalParty'
+    EthnicCommunity = 'ethnicCommunity'
 
 
 class SessionType:
@@ -71,9 +72,11 @@ class Resources:
     AffiliationStartDateMark = "din"
     PoliticalParty = "Formațiunea politică"
     PoliticalGroup = "Grupul parlamentar"
+    PoliticalGroupOfEthnicMinorities = "Grupul parlamentar al minorităților naționale"
     PresentTime = "prezent"
     Transcript = "Stenograma"
     TranscriptSpaced = "S T E N O G R A M A"
+    Unaffiliated = "Neafiliat"
 
 
 class StringFormatter:
