@@ -77,6 +77,7 @@ class Resources:
     Transcript = "Stenograma"
     TranscriptSpaced = "S T E N O G R A M A"
     Unaffiliated = "Neafiliat"
+    NoAdherence = "Fără adeziune"
 
 
 class StringFormatter:

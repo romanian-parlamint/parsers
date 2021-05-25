@@ -488,6 +488,8 @@ class RootXmlBuilder:
             return OrganizationType.Independent
         if Resources.Unaffiliated.lower() == organization_name.lower():
             return OrganizationType.Independent
+        if Resources.NoAdherence.lower() == organization_name.lower():
+            return OrganizationType.Independent
         return OrganizationType.PoliticalParty
 
     def _build_organization_id(self, name, acronym):
