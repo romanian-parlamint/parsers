@@ -119,13 +119,7 @@ class SessionXmlBuilder:
                                 encoding='utf-8',
                                 xml_declaration=True)
         if use_xmllint:
-            logging.info(
-                "Formatting file [{}] using xmllint.".format(file_name))
-            proc = subprocess.Popen(
-                ['xmllint', '--format', '--output', file_name, file_name],
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
-            proc.wait()
+            _apply_xmllint(file_name)
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
@@ -373,6 +367,22 @@ class SessionXmlBuilder:
         """Sets the id of the TEI element.
         """
         self.xml.set(XmlAttributes.xml_id, self.id_builder.session_id)
+
+
+def _apply_xmllint(file_name):
+    """Formats the specified file using xmllint.
+
+    Parameters
+    ----------
+    file_name: str, required
+        The full name of the file to be formatted.
+    """
+    logging.info("Formatting file [{}] using xmllint.".format(file_name))
+    proc = subprocess.Popen(
+        ['xmllint', '--format', '--output', file_name, file_name],
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+    proc.wait()
 
 
 def _parse_template_file(file_name):
