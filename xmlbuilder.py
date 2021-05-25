@@ -417,19 +417,38 @@ class RootXmlBuilder:
         deputy_affiliations: pandas.DataFrame, required
             The data frame containing affiliation records for deputies.
         """
-        self.corpus_root = _parse_template_file(template_file)
+        self.xml_root = _parse_template_file(template_file)
+        self.corpus_root = self.xml_root.getroot()
         self.deputy_affiliations = deputy_affiliations
 
-    def build_corpus_root(self, corpus_dir):
+    def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
 
         Parameters
         ----------
         corpus_dir: str, required
             The path to the directory containing corpus files.
+        file_name: str, optional
+            The name of the output file. Default is `ParlaMint-RO.xml`.
         """
         self.corpus_dir = Path(corpus_dir)
         self._build_organizations_list()
+        self._write_file(file_name)
+
+    def _write_file(self, file_name):
+        """Saves the corpus root XML to specified file.
+
+        Parameters
+        ----------
+        file_name: str, required
+            The name of the output file.
+        """
+        file_name = Path(self.corpus_dir, file_name)
+        file_name = str(file_name)
+        self.xml_root.write(file_name,
+                            pretty_print=True,
+                            encoding='utf-8',
+                            xml_declaration=True)
 
     def _build_organizations_list(self):
         """Builds the list of organizations from affiliation records.
