@@ -12,6 +12,32 @@ from collections import deque
 from common import get_element_text
 
 
+def parse_organization_name(organization_name, separator='-'):
+    """Splits the organization name into an acronym and the full name.
+
+    Parameters
+    ----------
+    organization_name: str, required
+        The organization name.
+    separator: str, optional
+        The separator string that is used to split name from acronym.
+        Default is '-'.
+
+    Returns
+    -------
+    (name, acronym): tuple of str
+        The name and the acronym (if available) of the organization.
+    """
+    name, acronym = [], []
+    for part in organization_name.split(separator):
+        part = part.strip()
+        if part.isupper():
+            acronym.append(part)
+        else:
+            name.append(part)
+    return '-'.join(name).strip(), '-'.join(acronym).strip()
+
+
 class Segment:
     """Represents a segment of a  session.
     """
