@@ -392,16 +392,18 @@ def _parse_template_file(file_name):
 class RootXmlBuilder:
     """Builds the corpus root XML file.
     """
-    def __init__(self, template_file):
+    def __init__(self, template_file, deputy_affiliations):
         """Creates a new instance of RootXmlBuilder.
 
         Parameters
         ----------
         template_file: str, required
             The path to the template file for corpus root.
+        deputy_affiliations: pandas.DataFrame, required
+            The data frame containing affiliation records for deputies.
         """
         self.corpus_root = _parse_template_file(template_file)
-        logging.info(etree.tostring(self.corpus_root))
+        self.deputy_affiliations = deputy_affiliations
 
     def build_corpus_root(self, corpus_dir):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
