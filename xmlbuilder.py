@@ -74,7 +74,7 @@ class SessionXmlBuilder:
         self.formatter = StringFormatter()
         self.output_directory = output_directory
         self.output_file_prefix = output_file_prefix
-        self.element_tree = self._parse_output_template(template_file)
+        self.element_tree = _parse_template_file(template_file)
         self.xml = self.element_tree.getroot()
         for div in self.xml.iterdescendants(XmlElements.div):
             if div.get(XmlAttributes.element_type) == "debateSection":
@@ -369,8 +369,26 @@ class SessionXmlBuilder:
         """
         self.xml.set(XmlAttributes.xml_id, self.id_builder.session_id)
 
-    def _parse_output_template(self, file_name):
-        """Parses the output template file.
+
+def _parse_template_file(file_name):
+    """Parses the template file.
+
+    Parameters
+    ----------
+    file_name: str, required
+        The name of the output file template.
+
+    Returns
+    -------
+    xml_tree: XML tree template
+    """
+    parser = etree.XMLParser(remove_blank_text=True)
+    xml_tree = etree.parse(file_name, parser)
+    for element in xml_tree.iter():
+        element.tail = None
+    return xml_tree
+
+
 
         Parameters
         ----------
