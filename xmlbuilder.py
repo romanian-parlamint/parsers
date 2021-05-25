@@ -435,7 +435,7 @@ class RootXmlBuilder:
         for org in organizations:
             name, acronym = parse_organization_name(org)
             role = self._get_organization_role(name)
-            self._build_organization_element(name, acronym, role)
+            self._build_organization_element(orgList, name, acronym, role)
 
     def _build_organization_element(self, parent, name, acronym, role):
         """Builds an `org` element and adds it to the parent element.
@@ -512,7 +512,7 @@ class RootXmlBuilder:
         parts = name.split()
         if len(parts) > 1:
             acronym = [part[0].upper() for part in parts]
-            return pattern.format(acronym)
+            return pattern.format(''.join(acronym))
 
         return pattern.format(name.capitalize())
 
