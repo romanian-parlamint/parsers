@@ -389,21 +389,29 @@ def _parse_template_file(file_name):
     return xml_tree
 
 
+class RootXmlBuilder:
+    """Builds the corpus root XML file.
+    """
+    def __init__(self, template_file):
+        """Creates a new instance of RootXmlBuilder.
 
         Parameters
         ----------
-        file_name: str, required
-            The name of the output file template.
-
-        Returns
-        -------
-        xml_tree: XML tree template
+        template_file: str, required
+            The path to the template file for corpus root.
         """
-        parser = etree.XMLParser(remove_blank_text=True)
-        xml_tree = etree.parse(file_name, parser)
-        for element in xml_tree.iter():
-            element.tail = None
-        return xml_tree
+        self.corpus_root = _parse_template_file(template_file)
+        logging.info(etree.tostring(self.corpus_root))
+
+    def build_corpus_root(self, corpus_dir):
+        """Builds the corpus root file by aggregating corpus files in corpus_dir.
+
+        Parameters
+        ----------
+        corpus_dir: str, required
+            The path to the directory containing corpus files.
+        """
+        self.corpus_dir = corpus_dir
 
 
 class XmlIdBuilder:
