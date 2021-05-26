@@ -194,6 +194,9 @@ class SessionXmlBuilder:
                 seg.set(XmlAttributes.xml_id,
                         self.id_builder.build_segment_id())
                 seg.text = self.formatter.to_single_line(text)
+        # Remove empty utterances to avoid schema errors
+        if (utterance is not None) and (len(utterance) == 0):
+            self.debate_section.remove(utterance)
 
     def _build_session_heading(self):
         """Adds the head elements to session description.
