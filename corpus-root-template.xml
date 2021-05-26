@@ -7,12 +7,12 @@
         <title type="main" xml:lang="en">Romanian parliamentary corpus ParlaMint-RO</title>
         <title type="sub" xml:lang="ro">Stenogramele ședințelor parlamentului României</title>
         <title type="sub" xml:lang="en">Meeting minutes of the Romanian parliament</title>
-        <meeting ana="#parla.term #RoParl.51"/>
-        <meeting ana="#parla.term #RoParl.52"/>
-        <meeting ana="#parla.term #RoParl.53"/>
-        <meeting ana="#parla.term #RoParl.54"/>
-        <meeting ana="#parla.term #RoParl.55"/>
-        <meeting ana="#parla.term #RoParl.56"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.51"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.52"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.53"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.54"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.55"/>
+        <meeting ana="#parla.term #parla.lower #RoParl.56"/>
         <respStmt>
           <persName>Petru Rebeja</persName>
           <persName>Mădălina Chitez</persName>

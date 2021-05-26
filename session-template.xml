@@ -7,7 +7,7 @@
         <title type="main" xml:lang="en">Romanian parliamentary corpus ParlaMint-RO, Regular Session, Chamber of Deputies, 28 january 2020</title>
         <title type="sub" xml:lang="ro">Stenograma ședinței Camerei Deputaților din România din 28 ianuarie 2020</title>
         <title type="sub" xml:lang="en">Minutes of the session of the Chamber of Deputies of Romania, Term 8, 28.01.2020 </title>
-        <meeting n="20200128" corresp="#CD" ana="#parla.meeting.regular">Camera Deputaților</meeting>
+        <meeting n="20200128" corresp="#CD" ana="#parla.lower #parla.meeting.regular">Camera Deputaților</meeting>
 	<respStmt>
 	  <persName>Petru Rebeja</persName>
 	  <persName>Mădălina Chitez</persName>
