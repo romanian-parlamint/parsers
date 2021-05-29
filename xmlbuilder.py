@@ -137,14 +137,15 @@ class SessionXmlBuilder:
         self._build_session_heading()
         self._build_session_body()
         self._build_session_footer()
+        self._cleanup_xml()
         self._set_session_stats()
         self._set_tag_usage()
 
-        logging.debug(
-            etree.tostring(self.element_tree,
-                           pretty_print=True,
-                           encoding='utf-8',
-                           xml_declaration=True))
+    def _cleanup_xml(self):
+        for u in self.debate_section.iterdescendants(tag=XmlElements.u):
+            if len(u) == 0:
+                self.debate_section.remove(u)
+            u.set(XmlAttributes.xml_id, self.id_builder.build_utterance_id())
 
     def _build_session_footer(self):
         """Adds the end time segment(s) to the session description.
@@ -187,16 +188,11 @@ class SessionXmlBuilder:
                               "#chair" if speaker == chairman else "#regular")
                 utterance.set(XmlAttributes.who,
                               self.id_builder.get_speaker_id(speaker))
-                utterance.set(XmlAttributes.xml_id,
-                              self.id_builder.build_utterance_id())
             else:
                 seg = etree.SubElement(utterance, XmlElements.seg)
                 seg.set(XmlAttributes.xml_id,
                         self.id_builder.build_segment_id())
                 seg.text = self.formatter.to_single_line(text)
-        # Remove empty utterances to avoid schema errors
-        if (utterance is not None) and (len(utterance) == 0):
-            self.debate_section.remove(utterance)
 
     def _build_session_heading(self):
         """Adds the head elements to session description.
