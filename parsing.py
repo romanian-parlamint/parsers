@@ -52,7 +52,18 @@ class Segment:
         """
         match = re.match(r'(domnul|doamna)\s+[^:]+:', self.full_text,
                          re.IGNORECASE | re.MULTILINE)
-        return match is not None
+        if match is not None:
+            formatter = StringFormatter()
+            speaker = self._get_spearker().strip()
+            speaker = formatter.normalize(speaker)
+            speaker = formatter.to_single_line(speaker)
+            speaker = speaker.replace('-', '').replace(':', '')
+            name_parts = speaker.split()
+            for p in name_parts:
+                if not p[0].isupper():
+                    return False
+            return True
+        return False
 
     @property
     def has_note(self):
