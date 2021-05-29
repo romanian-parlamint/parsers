@@ -74,9 +74,7 @@ class Segment:
         """
         if not self.is_speaker:
             return None
-        speaker = re.sub(r'domnul|doamna|(\(.+\)*)?:', '', self.full_text, 0,
-                         re.MULTILINE | re.IGNORECASE)
-        return speaker
+        return self._get_spearker()
 
     def get_text(self):
         """Returns the text of the current segment.
@@ -104,6 +102,11 @@ class Segment:
                     return get_element_text(child).replace(':', '')
                 return get_element_text(child)
         return None
+
+    def _get_spearker(self):
+        speaker = re.sub(r'domnul|doamna|(\(.+\)*)?:', '', self.full_text, 0,
+                         re.MULTILINE | re.IGNORECASE)
+        return speaker
 
 
 class TableRowSegment:
