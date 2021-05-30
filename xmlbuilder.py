@@ -10,6 +10,7 @@ from pathlib import Path
 from common import StringFormatter
 from common import build_speaker_id, OrganizationType
 import subprocess
+from collections import namedtuple
 
 
 class XmlElements:
@@ -403,22 +404,30 @@ def _parse_template_file(file_name):
     return xml_tree
 
 
+DeputyInfo = namedtuple("DeputyInfo",
+                        ['first_name', 'last_name', 'gender', 'image_url'])
+
+
 class RootXmlBuilder:
     """Builds the corpus root XML file.
     """
-    def __init__(self, template_file, deputy_affiliations):
+    def __init__(self, template_file, deputy_info, organizations):
         """Creates a new instance of RootXmlBuilder.
 
         Parameters
         ----------
         template_file: str, required
             The path to the template file for corpus root.
-        deputy_affiliations: pandas.DataFrame, required
-            The data frame containing affiliation records for deputies.
+        deputy_info: pandas.DataFrame, required
+            The data frame containing deputy names, gender, and link to profile picture.
+        organizations: iterable of str, required
+            The collection of organization names.
         """
         self.xml_root = _parse_template_file(template_file)
         self.corpus_root = self.xml_root.getroot()
-        self.deputy_affiliations = deputy_affiliations
+        self.deputy_info = deputy_info
+        self.organizations = organizations
+        self.name_map = self._build_name_map(self.deputy_info)
 
     def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
@@ -432,7 +441,71 @@ class RootXmlBuilder:
         """
         self.corpus_dir = Path(corpus_dir)
         self._build_organizations_list()
+
         self._write_file(file_name)
+
+    def _build_name_map(self, deputy_info):
+        """Builds a map of speaker ids and their names from the affiliations.
+
+        Parameters
+        ----------
+        deputy_info: pandas.DataFrame, required
+            The DataFrame containing depity info records.
+
+        Returns
+        -------
+        name_map: dict of (str, str)
+            A dict containing speaker ids as keys and speaker names as values.
+        """
+
+        name_map = {}
+        for row in deputy_info.itertuples():
+            name_parts = [row.first_name, row.last_name]
+            value = DeputyInfo(first_name=row.first_name,
+                               last_name=row.last_name,
+                               gender=row.gender,
+                               image_url=row.image_url)
+            value = (row.first_name, row.last_name)
+            self._add_to_name_map(name_map, name_parts, value)
+            # Reverse the name parts to make sure we don't loose any data
+            name_parts.reverse()
+            self._add_to_name_map(name_map, name_parts, value)
+        return name_map
+
+    def _add_to_name_map(self, name_map, name_parts, value):
+        """Adds the specified value to the name_map under different key variations.
+
+        Parameters
+        ----------
+        name_map: dict of (str, str), required
+            The name map to add to.
+        name_parts: iterable of str, required
+            First and last name.
+        value: DeputyInfo, required
+            The value to add to the name map;
+        """
+        id = build_speaker_id(' '.join(name_parts))
+        if id not in name_map:
+            name_map[id] = value
+        if id.lower() not in name_map:
+            name_map[id.lower()] = value
+
+    def _normalize_last_name(self, last_name):
+        """Capitalizes each part of the last name.
+
+        Parameters
+        ----------
+        last_name: str, required
+            The name to normalize.
+
+        Returns
+        -------
+        normalized: str
+            The normalized name.
+        """
+        name = last_name.replace('-', ' ').split()
+        normalized = '  '.join([p.capitalize() for p in name])
+        return normalized
 
     def _write_file(self, file_name):
         """Saves the corpus root XML to specified file.
@@ -452,7 +525,6 @@ class RootXmlBuilder:
     def _build_organizations_list(self):
         """Builds the list of organizations from affiliation records.
         """
-        organizations = self.deputy_affiliations.organization.unique()
         orgList = None
         for elem in self.corpus_root.iterdescendants(tag=XmlElements.listOrg):
             orgList = elem
@@ -460,7 +532,7 @@ class RootXmlBuilder:
         if orgList is None:
             logging.error("Could not find element listOrg in template file.")
             return
-        for org in organizations:
+        for org in self.organizations:
             name, acronym = parse_organization_name(org)
             role = self._get_organization_role(name)
             self._build_organization_element(orgList, name, acronym, role)

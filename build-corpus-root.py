@@ -8,12 +8,14 @@ import numpy as np
 
 def run(args):
     logging.info("Building root file for the corpus.")
-    logging.info("Reading affiliations from {}.".format(
-        args.deputy_affiliations_file))
-    affiliations = pd.read_csv(args.deputy_affiliations_file)
-    logging.info("Removing empty rows from the affiliations file.")
-    affiliations.dropna(subset=['first_name', 'last_name'], inplace=True)
-    builder = RootXmlBuilder(args.template_file, affiliations)
+    logging.info("Reading deputy info from {}.".format(args.deputy_info_file))
+    deputy_info = pd.read_csv(args.deputy_info_file)
+    logging.info("Reading organizations from {}.".format(
+        args.organizations_file))
+    organizations = pd.read_csv(args.organizations_file)
+    organizations = list(organizations.organization)
+
+    builder = RootXmlBuilder(args.template_file, deputy_info, organizations)
     builder.build_corpus_root(args.corpus_dir)
     logging.info("That's all folks!")
 
@@ -21,10 +23,13 @@ def run(args):
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Build TEI corpus root file.')
     parser.add_argument(
-        '--deputy-affiliations-file',
+        '--deputy-info-file',
         help=
-        "Path to the CSV file containing affiliation records for the deputies.",
-        default='./deputy-affiliations.csv')
+        "The CSV file containing deputy names, gender, and link to profile picture.",
+        default='./deputy-info.csv')
+    parser.add_argument('--organizations-file',
+                        help="The CSV file containing organization names.",
+                        default='./organizations.csv')
     parser.add_argument('--template-file',
                         help="Path to the corpus root template file.",
                         default='./corpus-root-template.xml')
