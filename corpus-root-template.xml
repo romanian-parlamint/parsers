@@ -132,7 +132,7 @@
                 </catDesc>
                 <category xml:id="parla.upper">
                   <catDesc xml:lang="en">
-                    <term>Senate</term>
+                    <term>Upper house</term>
                   </catDesc>
 		  <catDesc xml:lang="ro">
                     <term>Senat</term>
@@ -140,7 +140,7 @@
                 </category>
                 <category xml:id="parla.lower">
                   <catDesc xml:lang="en">
-                    <term>Chamber of Deputies</term>
+                    <term>Lower house</term>
                   </catDesc>
                   <catDesc xml:lang="ro">
                     <term>Camera deputaților</term>
