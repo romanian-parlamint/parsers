@@ -610,10 +610,16 @@ class RootXmlBuilder:
         pattern = "RoParl.Org.{}"
         if (acronym is not None) and (len(acronym) > 0):
             return pattern.format(acronym)
-
+        separators = "()-"
+        replacements = {'(': '', ')': '', '-': ' ', 'Ț': 'T', 'Ș': 'S'}
+        for char, replacement in replacements.items():
+            name = name.replace(char, replacement)
         parts = name.split()
         if len(parts) > 1:
-            acronym = [part[0].upper() for part in parts]
+            acronym = [
+                part[0].upper() if not part.isupper() else part
+                for part in parts
+            ]
             return pattern.format(''.join(acronym))
 
         return pattern.format(name.capitalize())

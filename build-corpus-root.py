@@ -13,7 +13,7 @@ def run(args):
     logging.info("Reading organizations from {}.".format(
         args.organizations_file))
     organizations = pd.read_csv(args.organizations_file)
-    organizations = list(organizations.organization)
+    organizations = list(organizations.organization.unique())
 
     builder = RootXmlBuilder(args.template_file, deputy_info, organizations)
     builder.build_corpus_root(args.corpus_dir)
