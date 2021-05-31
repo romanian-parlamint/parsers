@@ -92,13 +92,16 @@
       <tagsDecl>
         <!--These numbers do not reflect the size of the sample!-->
         <namespace name="http://www.tei-c.org/ns/1.0">
-          <tagUsage gi="body" occurs="1795"/>
-          <tagUsage gi="div" occurs="31389"/>
-          <tagUsage gi="head" occurs="31389"/>
-          <tagUsage gi="note" occurs="165648"/>
-          <tagUsage gi="seg" occurs="1143313"/>
-          <tagUsage gi="text" occurs="1795"/>
-          <tagUsage gi="u" occurs="552103"/>
+          <tagUsage gi="body" occurs="0"/>
+          <tagUsage gi="div" occurs="0"/>
+          <tagUsage gi="head" occurs="0"/>
+          <tagUsage gi="note" occurs="0"/>
+          <tagUsage gi="seg" occurs="0"/>
+          <tagUsage gi="text" occurs="0"/>
+          <tagUsage gi="u" occurs="0"/>
+          <tagUsage gi="kinesic" occurs="0"/>
+          <tagUsage gi="desc" occurs="0"/>
+          <tagUsage gi="gap" occurs="0"/>
         </namespace>
       </tagsDecl>
       <classDecl>
