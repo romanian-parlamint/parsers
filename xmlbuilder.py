@@ -11,6 +11,7 @@ from common import StringFormatter
 from common import build_speaker_id, OrganizationType
 import subprocess
 from collections import namedtuple
+from dateutil import parser
 
 
 class XmlElements:
@@ -37,6 +38,7 @@ class XmlElements:
     listOrg = '{http://www.tei-c.org/ns/1.0}listOrg'
     org = '{http://www.tei-c.org/ns/1.0}org'
     orgName = '{http://www.tei-c.org/ns/1.0}orgName'
+    event = '{http://www.tei-c.org/ns/1.0}event'
 
 
 class XmlAttributes:
@@ -53,6 +55,8 @@ class XmlAttributes:
     who = 'who'
     full = 'full'
     role = 'role'
+    event_start = 'from'
+    event_end = 'to'
 
 
 class SessionXmlBuilder:
@@ -411,7 +415,11 @@ DeputyInfo = namedtuple("DeputyInfo",
 class RootXmlBuilder:
     """Builds the corpus root XML file.
     """
-    def __init__(self, template_file, deputy_info, organizations):
+    def __init__(self,
+                 template_file,
+                 deputy_info,
+                 organizations,
+                 parliament_id="RoParl"):
         """Creates a new instance of RootXmlBuilder.
 
         Parameters
@@ -422,12 +430,15 @@ class RootXmlBuilder:
             The data frame containing deputy names, gender, and link to profile picture.
         organizations: iterable of str, required
             The collection of organization names.
+        parliament_id: str, optional
+            The id of the organization with role='parliament'.
         """
         self.xml_root = _parse_template_file(template_file)
         self.corpus_root = self.xml_root.getroot()
         self.deputy_info = deputy_info
         self.organizations = organizations
         self.name_map = self._build_name_map(self.deputy_info)
+        self.parliament_terms = self._parse_terms_list(parliament_id)
 
     def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
@@ -441,8 +452,35 @@ class RootXmlBuilder:
         """
         self.corpus_dir = Path(corpus_dir)
         self._build_organizations_list()
-
         self._write_file(file_name)
+
+    def _parse_terms_list(self, parliament_id):
+        """Builds a list of parliament terms with their dates and event ids.
+
+        Returns
+        -------
+        terms: list of (start_date, end_date, id) tuples
+            The terms of the parliament. The parts `start_date` and `end_date` are dates and `id` is str.
+        """
+        parliament = None
+        for org in self.corpus_root.iterdescendants(XmlElements.org):
+            if org.get(XmlAttributes.xml_id) == parliament_id:
+                parliament = org
+                break
+        if parliament is None:
+            logging.error(
+                "Could not find organization with role='parliament'.")
+            return []
+
+        terms = []
+        for event in parliament.iterdescendants(XmlElements.event):
+            id = event.get(XmlAttributes.xml_id)
+            start_date = parser.parse(event.get(XmlAttributes.event_start))
+            end_date_str = event.get(XmlAttributes.event_end)
+            end_date = parser.parse(event.get(
+                XmlAttributes.event_end)) if end_date_str is not None else None
+            terms.append((start_date, end_date, id))
+        return terms
 
     def _build_name_map(self, deputy_info):
         """Builds a map of speaker ids and their names from the affiliations.
