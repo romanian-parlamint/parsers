@@ -452,7 +452,85 @@ class RootXmlBuilder:
         """
         self.corpus_dir = Path(corpus_dir)
         self._build_organizations_list()
+        for component_file in self._iter_files(self.corpus_dir, file_name):
+            logging.info("Adding file {} to corpus root.".format(
+                str(component_file)))
+            corpus_component = _parse_template_file(
+                str(component_file)).getroot()
+            self._update_tag_usage(corpus_component)
+            self._add_or_update_speakers(corpus_component)
+            self._add_component_file(component_file)
+
+            break
         self._write_file(file_name)
+
+    def _add_component_file(self, component_file):
+        """Adds the `component_file` to the list of included files in the corpus.
+
+        Parameters
+        ----------
+        component_file: pathlib.Path, required
+            The path of the component file.
+        """
+        logging.info("Addind file to included files.")
+
+    def _add_or_update_speakers(self, corpus_component):
+        """Iterates over the speakers from the `corpus_component` and adds them to the list of speakers or updates their affiliation.
+
+        Parameters
+        ----------
+        corpus_component: etree.ElementTree, required
+            The contents of the component file as an XML tree.
+        """
+        logging.info("Updating speakers.")
+
+    def _update_tag_usage(self, corpus_component):
+        """Updates the `tagUsage` element with the values from `corpus_component.
+
+        Parameters
+        ----------
+        corpus_component: etree.ElementTree, required
+            The contents of the component file as an XML tree.
+        """
+        logging.info("Updating tagUsage.")
+        tag_usage_component = {
+            tu.get(XmlAttributes.gi): int(tu.get(XmlAttributes.occurs))
+            for tu in corpus_component.iterdescendants(
+                tag=XmlElements.tagUsage)
+        }
+        print(list(tag_usage_component.keys()))
+        tag_usage_root = {
+            tu.get(XmlAttributes.gi): tu
+            for tu in self.corpus_root.iterdescendants(
+                tag=XmlElements.tagUsage)
+        }
+
+        for tag_type, num_occurences in tag_usage_component.items():
+            elem = tag_usage_root[tag_type]
+            num_occurences = num_occurences + int(
+                elem.get(XmlAttributes.occurs))
+            logging.info("Setting {} tag usage to {} occurences.".format(
+                tag_type, num_occurences))
+            elem.set(XmlAttributes.occurs, str(num_occurences))
+
+    def _iter_files(self, corpus_dir, root_file):
+        """Iterates over the files in the `corpus_dir` and skips `root_file`.
+
+        Parameters
+        ----------
+        corpus_dir: pathlib.Path, required
+            The path of the corpus directory.
+        root_file: str, required
+            The name of the corpus root file to be skipped.
+
+        Returns
+        -------
+        file_path: generator of pathlib.Path
+            The generator that returns path of each component file.
+        """
+        for file_path in corpus_dir.glob('*.xml'):
+            if not root_file in str(file_path):
+                yield file_path
 
     def _parse_terms_list(self, parliament_id):
         """Builds a list of parliament terms with their dates and event ids.
