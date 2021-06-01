@@ -490,7 +490,14 @@ class RootXmlBuilder:
         component_file: pathlib.Path, required
             The path of the component file.
         """
-        logging.info("Addind file to included files.")
+        file_name = Path(component_file)
+        logging.info("Addind file {} to included files.".format(
+            file_name.name))
+        # I don't have time to investigate how to do this properly so I'm applying this hack.
+        include_element = etree.fromstring(
+            '<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="{}"/>'
+            .format(file_name.name))
+        self.corpus_root.append(include_element)
 
     def _add_or_update_speakers(self, corpus_component):
         """Iterates over the speakers from the `corpus_component` and adds them to the list of speakers or updates their affiliation.
