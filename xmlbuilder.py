@@ -478,8 +478,6 @@ class RootXmlBuilder:
             self._update_tag_usage(corpus_component)
             self._add_or_update_speakers(corpus_component)
             self._add_component_file(component_file)
-
-            break
         self._write_file(file_name)
 
     def _add_component_file(self, component_file):
