@@ -620,8 +620,8 @@ class RootXmlBuilder:
         if end_date is not None:
             affiliation.set(XmlAttributes.event_end,
                             format_date(end_date, "yyyy-MM-dd"))
-        affiliation.set(XmlAttributes.ana, term_id)
-        affiliation.set(XmlAttributes.ref, parliament_id)
+        affiliation.set(XmlAttributes.ana, '#{}'.format(term_id))
+        affiliation.set(XmlAttributes.ref, '#{}'.format(parliament_id))
         affiliation.set(XmlAttributes.role, 'member')
         return affiliation
 
