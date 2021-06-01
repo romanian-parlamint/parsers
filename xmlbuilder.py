@@ -695,7 +695,7 @@ class RootXmlBuilder:
         sex = etree.SubElement(person, XmlElements.sex)
         sex.set(XmlAttributes.value, gender[0])
         sex.text = gender
-        if image_url is not None:
+        if (image_url is not None) and (len(image_url) > 0):
             logging.info("Person with id {} has image URL {}.".format(
                 person_id, image_url))
             figure = etree.SubElement(person, XmlElements.figure)

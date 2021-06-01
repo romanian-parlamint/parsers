@@ -10,6 +10,7 @@ def run(args):
     logging.info("Building root file for the corpus.")
     logging.info("Reading deputy info from {}.".format(args.deputy_info_file))
     deputy_info = pd.read_csv(args.deputy_info_file)
+    deputy_info = deputy_info.replace(np.nan, '', regex=True)
     logging.info("Reading organizations from {}.".format(
         args.organizations_file))
     organizations = pd.read_csv(args.organizations_file)
