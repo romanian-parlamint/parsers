@@ -39,6 +39,15 @@ class XmlElements:
     org = '{http://www.tei-c.org/ns/1.0}org'
     orgName = '{http://www.tei-c.org/ns/1.0}orgName'
     event = '{http://www.tei-c.org/ns/1.0}event'
+    listPerson = '{http://www.tei-c.org/ns/1.0}listPerson'
+    person = '{http://www.tei-c.org/ns/1.0}person'
+    persName = '{http://www.tei-c.org/ns/1.0}persName'
+    forename = '{http://www.tei-c.org/ns/1.0}forename'
+    surname = '{http://www.tei-c.org/ns/1.0}surname'
+    sex = '{http://www.tei-c.org/ns/1.0}sex'
+    affiliation = '{http://www.tei-c.org/ns/1.0}affiliation'
+    figure = '{http://www.tei-c.org/ns/1.0}figure'
+    graphic = '{http://www.tei-c.org/ns/1.0}graphic'
 
 
 class XmlAttributes:
@@ -57,6 +66,10 @@ class XmlAttributes:
     role = 'role'
     event_start = 'from'
     event_end = 'to'
+    value = 'value'
+    url = 'url'
+    ref = 'ref'
+    role = 'role'
 
 
 class SessionXmlBuilder:
@@ -438,7 +451,11 @@ class RootXmlBuilder:
         self.deputy_info = deputy_info
         self.organizations = organizations
         self.name_map = self._build_name_map(self.deputy_info)
+        self.male_names = set()
+        self.female_names = set()
+        self._split_names_by_gender()
         self.parliament_terms = self._parse_terms_list(parliament_id)
+        self.existing_persons = {}
 
     def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
@@ -483,6 +500,235 @@ class RootXmlBuilder:
             The contents of the component file as an XML tree.
         """
         logging.info("Updating speakers.")
+        session_date = None
+        for date_elem in corpus_component.iterdescendants(
+                tag=XmlElements.date):
+            if date_elem.getparent().tag == XmlElements.bibl:
+                session_date = parser.parse(date_elem.get(XmlAttributes.when))
+        if session_date is None:
+            logging.error("Could not parse session date.")
+        person_list = next(
+            self.corpus_root.iterdescendants(tag=XmlElements.listPerson))
+        for utterance in corpus_component.iterdescendants(tag=XmlElements.u):
+            speaker_id = utterance.get(XmlAttributes.who)
+            key = self._build_name_map_key(speaker_id)
+            speaker_id = speaker_id.strip('#')
+            existing_person = self._find_person_by_id(person_list, speaker_id)
+            if key not in self.name_map:
+                # This is an unknown person.
+                # If a person with the same id does not exist - add it. Otherwise do nothing.
+                if existing_person is None:
+                    self._add_unknown_speaker(person_list, speaker_id)
+            else:
+                # This is a known person but it may not have been added to the persons list.
+                # If it is not added, add new element.
+                if existing_person is None:
+                    dep_info = self.name_map[key]
+                    existing_person = self._add_person(
+                        person_list, speaker_id,
+                        dep_info.first_name.split(' '),
+                        dep_info.last_name.split(' '),
+                        "Male" if dep_info.gender == "M" else "Female",
+                        dep_info.image_url)
+                # This is a known person that has already been added to the person list.
+                self._update_speaker_affiliation(existing_person, session_date)
+
+    def _update_speaker_affiliation(self,
+                                    speaker,
+                                    session_date,
+                                    parliament_id="RoParl"):
+        """Adds a new affiliation element to the person with the reference to the parliament term if it doesn't exist.
+
+        Parameters
+        ----------
+        speaker: etree.Element, required
+            The `person` element for which to update affiliation.
+        session_date: date, required
+            The date of the session. It will be used to identify the parliament term.
+        parliament_id: str, optional
+            The id value of the parliament organization.
+        """
+        logging.info("Updating speaker affiliation.")
+        term = None
+        for start_date, end_date, term_id in self.parliament_terms:
+            if (start_date <= session_date) and ((end_date is None) or
+                                                 (session_date <= end_date)):
+                term = (start_date, end_date, term_id)
+        if term is None:
+            logging.warning("Could not find term for session date {}.".format(
+                str(session_date)))
+            return
+        start_date, end_date, term_id = term
+        affiliation = None
+        for aff in speaker.iterdescendants(tag=XmlElements.affiliation):
+            affiliation = aff
+            if aff.get(XmlAttributes.ref) == '#{}'.format(term_id):
+                logging.info("Affiliation already exists.")
+                return
+        new_affiliation = self._build_affiliation_element(
+            start_date, end_date, term_id, parliament_id)
+        if affiliation is None:
+            sex = next(speaker.iterdescendants(tag=XmlElements.sex))
+            sex.addnext(new_affiliation)
+        else:
+            affiliation.addnext(new_affiliation)
+
+    def _build_affiliation_element(self, start_date, end_date, term_id,
+                                   parliament_id):
+        """Builds a new affiliation element.
+
+        Parameters
+        ----------
+        start_date: date, required
+            The start date of the affiliation.
+        end_date: date, required
+            The end date of the affiliation; may be None.
+        term_id: str, required
+            The id of the legislative term representing the affiliation.
+        parliament_id: str, required
+            The id of the parliament organization.
+
+        Returns
+        -------
+        affiliation: etree.Element
+            The affiliation element.
+        """
+        logging.info("Building new affiliation element.")
+        affiliation = etree.Element(XmlElements.affiliation)
+        affiliation.set(XmlAttributes.event_start,
+                        format_date(start_date, "yyyy-MM-dd"))
+        if end_date is not None:
+            affiliation.set(XmlAttributes.event_end,
+                            format_date(end_date, "yyyy-MM-dd"))
+        affiliation.set(XmlAttributes.ana, term_id)
+        affiliation.set(XmlAttributes.ref, parliament_id)
+        affiliation.set(XmlAttributes.role, 'member')
+        return affiliation
+
+    def _find_person_by_id(self, person_list, person_id):
+        """Iterates over `person_list` to find the person with the provided id.
+
+        Parameters
+        ----------
+        person_list: etree.Element, required
+            The element containing the list of persons.
+        person_id: str, required
+            The id of the person to find.
+
+        Returns
+        -------
+        person: etree.Element
+            The person with the specified id if found; None otherwise.
+        """
+        logging.info("Looking up person with id #{}.".format(person_id))
+        if person_id in self.existing_persons:
+            logging.info(
+                "Person with id #{} already exists.".format(person_id))
+            return self.existing_persons[person_id]
+        return None
+
+    def _add_person(self,
+                    person_list,
+                    person_id,
+                    first_name,
+                    last_name,
+                    gender,
+                    image_url=None):
+        """Adds a new `person` element to the element specified by `person_list` with the provided values.
+
+        Parameters
+        ----------
+        person_list: etree.Element, required
+            The parent element to which to add a new person.
+        person_id: str, required
+            The id of the new person.
+        first_name: iterable of str, required
+            The parts of the first name.
+        last_name: iterable of str, required
+            The parts of the last name.
+        gender: str, required
+            Male of Female - the gender of the person to be added.
+        image_url: str, optional
+            The URL of the person image if exists.
+
+        Returns
+        -------
+        person: etree.Element
+            The newly added person.
+        """
+        person = etree.SubElement(person_list, XmlElements.person)
+        person.set(XmlAttributes.xml_id, person_id)
+        person_name = etree.SubElement(person, XmlElements.persName)
+        for part in first_name:
+            forename = etree.SubElement(person_name, XmlElements.forename)
+            forename.text = part
+        for part in last_name:
+            surname = etree.SubElement(person_name, XmlElements.surname)
+            surname.text = part
+        sex = etree.SubElement(person, XmlElements.sex)
+        sex.set(XmlAttributes.value, gender[0])
+        sex.text = gender
+        if image_url is not None:
+            figure = etree.SubElement(person, XmlElements.figure)
+            graphic = etree.SubElement(figure, XmlElements.graphic)
+            graphic.set(XmlAttributes.url, image_url)
+        self.existing_persons[person_id] = person
+        return person
+
+    def _add_unknown_speaker(self, person_list, speaker_id):
+        """Adds an unknown speaker to the list of persons by trying to guess its name and gender.
+
+        Parameters
+        ----------
+        person_list: etree.Element, required
+            The element to which to add new speaker if it does not exist.
+        speaker_id: str, required
+            The id of the unknown speaker without the leading # symbol.
+        """
+        logging.info(
+            "Id {} not found in name map. Inferring deputy info.".format(
+                speaker_id))
+        name_parts = speaker_id.split('-')
+        first_name = name_parts[:-1]
+        last_name = name_parts[-1:]
+        self._add_person(person_list, speaker_id, first_name, last_name,
+                         self._guess_gender(first_name))
+
+    def _guess_gender(self, first_names):
+        """Tries to guess the gender of a person by looking at its first names.
+
+        Parameters
+        ----------
+        first_names: iterable of str, required
+            The first names of the person.
+
+        Returns
+        -------
+        gender: str
+            The values can be 'Male' or 'Female'.
+        """
+        for part in first_names:
+            if part in self.male_names:
+                return "Male"
+            if part in self.female_names:
+                return "Female"
+        # None of the first names are known
+        # Try to infer the gender
+        for part in first_names:
+            if part[-1] == 'a':
+                return "Female"
+        return "Male"
+
+    def _split_names_by_gender(self):
+        """Iterates over the names map and splits the first names into male and female specific.
+        """
+        for dep_info in self.name_map.values():
+            first_names = dep_info.first_name.replace('-', ' ').split()
+            for first_name in first_names:
+                if dep_info.gender == 'M':
+                    self.male_names.add(first_name)
+                else:
+                    self.female_names.add(first_name)
 
     def _update_tag_usage(self, corpus_component):
         """Updates the `tagUsage` element with the values from `corpus_component.
@@ -581,7 +827,6 @@ class RootXmlBuilder:
                                last_name=row.last_name,
                                gender=row.gender,
                                image_url=row.image_url)
-            value = (row.first_name, row.last_name)
             self._add_to_name_map(name_map, name_parts, value)
             # Reverse the name parts to make sure we don't loose any data
             name_parts.reverse()
@@ -601,10 +846,27 @@ class RootXmlBuilder:
             The value to add to the name map;
         """
         id = build_speaker_id(' '.join(name_parts))
+        id = self._build_name_map_key(id)
         if id not in name_map:
             name_map[id] = value
-        if id.lower() not in name_map:
-            name_map[id.lower()] = value
+
+    def _build_name_map_key(self, id):
+        """Converts the given id into a canonical representation for the name map.
+
+        Parameters
+        ----------
+        id: str, required
+            The id to normalize.
+
+        Returns
+        -------
+        canonical_id: str
+            The normalized id.
+        """
+        if id[0] != '#':
+            id = '#{}'.format(id)
+        canonical_id = id.lower()
+        return canonical_id
 
     def _normalize_last_name(self, last_name):
         """Capitalizes each part of the last name.
