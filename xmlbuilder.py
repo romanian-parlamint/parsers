@@ -676,6 +676,8 @@ class RootXmlBuilder:
         person: etree.Element
             The newly added person.
         """
+        logging.info(
+            "Adding person with id {} to the person list.".format(person_id))
         person = etree.SubElement(person_list, XmlElements.person)
         person.set(XmlAttributes.xml_id, person_id)
         person_name = etree.SubElement(person, XmlElements.persName)
@@ -689,6 +691,8 @@ class RootXmlBuilder:
         sex.set(XmlAttributes.value, gender[0])
         sex.text = gender
         if image_url is not None:
+            logging.info("Person with id {} has image URL {}.".format(
+                person_id, image_url))
             figure = etree.SubElement(person, XmlElements.figure)
             graphic = etree.SubElement(figure, XmlElements.graphic)
             graphic.set(XmlAttributes.url, image_url)
