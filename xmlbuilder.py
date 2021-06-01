@@ -456,6 +456,7 @@ class RootXmlBuilder:
         self._split_names_by_gender()
         self.parliament_terms = self._parse_terms_list(parliament_id)
         self.existing_persons = {}
+        self.person_affiliations = {}
 
     def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
@@ -559,19 +560,38 @@ class RootXmlBuilder:
                 str(session_date)))
             return
         start_date, end_date, term_id = term
-        affiliation = None
-        for aff in speaker.iterdescendants(tag=XmlElements.affiliation):
-            affiliation = aff
-            if aff.get(XmlAttributes.ref) == '#{}'.format(term_id):
-                logging.info("Affiliation already exists.")
-                return
+        speaker_id = speaker.get(XmlAttributes.xml_id)
+        if self._affiliation_exists(speaker_id, term_id):
+            logging.info("Affiliation {}--{} already exists.".format(
+                speaker_id, term_id))
+            return
+
         new_affiliation = self._build_affiliation_element(
             start_date, end_date, term_id, parliament_id)
-        if affiliation is None:
-            sex = next(speaker.iterdescendants(tag=XmlElements.sex))
-            sex.addnext(new_affiliation)
-        else:
-            affiliation.addnext(new_affiliation)
+        speaker.append(new_affiliation)
+        if speaker_id not in self.person_affiliations:
+            self.person_affiliations[speaker_id] = set()
+        speaker_affiliations = self.person_affiliations[speaker_id]
+        speaker_affiliations.add(term_id)
+
+    def _affiliation_exists(self, speaker_id, term_id):
+        """Checks if there is an affiliation element for the specified person, which references the specified term.
+
+        Parameters
+        ----------
+        speaker_id: str, required
+            The id of the person.
+        term_id: str, required
+            The id of the legislative term.
+
+        Returns
+        -------
+        True if affiliation element exists; False otherwise.
+        """
+        if speaker_id not in self.person_affiliations:
+            return False
+        affiliations = self.person_affiliations[speaker_id]
+        return term_id in affiliations
 
     def _build_affiliation_element(self, start_date, end_date, term_id,
                                    parliament_id):
