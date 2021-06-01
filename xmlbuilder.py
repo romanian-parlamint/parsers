@@ -773,7 +773,7 @@ class RootXmlBuilder:
             for tu in corpus_component.iterdescendants(
                 tag=XmlElements.tagUsage)
         }
-        print(list(tag_usage_component.keys()))
+
         tag_usage_root = {
             tu.get(XmlAttributes.gi): tu
             for tu in self.corpus_root.iterdescendants(
