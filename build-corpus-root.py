@@ -6,6 +6,11 @@ import pandas as pd
 import numpy as np
 
 
+def build_id_char_replacement_map(replacements):
+    replacement_map = {part[0]: part[1:] for part in replacements.split(';')}
+    return replacement_map
+
+
 def run(args):
     logging.info("Building root file for the corpus.")
     logging.info("Reading deputy info from {}.".format(args.deputy_info_file))
@@ -15,9 +20,15 @@ def run(args):
         args.organizations_file))
     organizations = pd.read_csv(args.organizations_file)
     organizations = list(organizations.organization.unique())
-
-    builder = RootXmlBuilder(args.template_file, deputy_info, organizations)
+    logging.info("Building id chars replacement map")
+    id_char_replacements = build_id_char_replacement_map(
+        args.id_char_replacements)
+    builder = RootXmlBuilder(args.template_file,
+                             deputy_info,
+                             organizations,
+                             id_char_replacements=id_char_replacements)
     builder.build_corpus_root(args.corpus_dir)
+    print(builder.id_replacement_list)
     logging.info("That's all folks!")
 
 
@@ -37,6 +48,11 @@ def parse_arguments():
     parser.add_argument('--corpus-dir',
                         help="Path to the directory containing corpus.",
                         default='./output')
+    parser.add_argument(
+        '--id-char-replacements',
+        help=
+        "The map of characters that are invalid in id strings and their replacements.",
+        default="ȘS;șs;ȚT;țt")
     parser.add_argument(
         '-l',
         '--log-level',

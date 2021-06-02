@@ -432,7 +432,8 @@ class RootXmlBuilder:
                  template_file,
                  deputy_info,
                  organizations,
-                 parliament_id="RoParl"):
+                 parliament_id="RoParl",
+                 id_char_replacements=None):
         """Creates a new instance of RootXmlBuilder.
 
         Parameters
@@ -445,11 +446,14 @@ class RootXmlBuilder:
             The collection of organization names.
         parliament_id: str, optional
             The id of the organization with role='parliament'.
+        id_char_replacements: dict of (str, str), optional
+            A dict containing the uppercase and lowercase characters that are not valid for id strings and their replacements.
         """
         self.xml_root = _parse_template_file(template_file)
         self.corpus_root = self.xml_root.getroot()
         self.deputy_info = deputy_info
         self.organizations = organizations
+        self.id_char_replacements = id_char_replacements if id_char_replacements is not None else {}
         self.name_map = self._build_name_map(self.deputy_info)
         self.male_names = set()
         self.female_names = set()
@@ -457,6 +461,14 @@ class RootXmlBuilder:
         self.parliament_terms = self._parse_terms_list(parliament_id)
         self.existing_persons = {}
         self.person_affiliations = {}
+        self.ids_to_replace = {}
+
+    @property
+    def id_replacement_list(self):
+        """Returns the list of ids to be replaced.
+        """
+        return [(id_string, canonical_id)
+                for id_string, canonical_id in self.ids_to_replace.items()]
 
     def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
@@ -683,6 +695,8 @@ class RootXmlBuilder:
         """
         logging.info(
             "Adding person with id {} to the person list.".format(person_id))
+        if self._contains_invalid_characters(person_id):
+            self._add_id_to_post_processing(person_id)
         person = etree.SubElement(person_list, XmlElements.person)
         person.set(XmlAttributes.xml_id, person_id)
         person_name = etree.SubElement(person, XmlElements.persName)
@@ -703,6 +717,48 @@ class RootXmlBuilder:
             graphic.set(XmlAttributes.url, image_url)
         self.existing_persons[person_id] = person
         return person
+
+    def _add_id_to_post_processing(self, id_string):
+        """Adds the specified id_string to the list of ids to be replaced.
+
+        Parameters
+        ----------
+        id_string: str, required
+            The id containing invalid characters.
+        """
+        invalid_characters = [
+            letter for letter in id_string
+            if letter in self.id_char_replacements
+        ]
+        logging.info("Person id {} contains invalid characters {}.".format(
+            id_string, invalid_characters))
+        if id_string in self.ids_to_replace:
+            return
+        canonical_id = id_string
+        for c in invalid_characters:
+            replacement = self.id_char_replacements[c]
+            canonical_id = canonical_id.replace(c, replacement)
+        logging.info("Scheduling id {} to be replaced with {}.".format(
+            id_string, canonical_id))
+        self.ids_to_replace[id_string] = canonical_id
+
+    def _contains_invalid_characters(self, id_string):
+        """Checks if the provided id contains invalid characters.
+
+        Parameters
+        ----------
+        id_string: str, required
+            The id to check.
+
+        Returns
+        -------
+        contains_invalid_chars: bool
+            True if id contains invalid characters; False otherwise.
+        """
+        for letter in id_string:
+            if letter in self.id_char_replacements:
+                return True
+        return False
 
     def _add_unknown_speaker(self, person_list, speaker_id):
         """Adds an unknown speaker to the list of persons by trying to guess its name and gender.
