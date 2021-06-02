@@ -726,21 +726,42 @@ class RootXmlBuilder:
         id_string: str, required
             The id containing invalid characters.
         """
+        logging.info(
+            "Person id {} contains invalid characters.".format(id_string))
+        if id_string in self.ids_to_replace:
+            logging.info(
+                "Id {} is already in the post-processing list.".format(
+                    id_string))
+            return
+        canonical_id = self._build_canonical_id(id_string)
+        logging.info("Scheduling id {} to be replaced with {}.".format(
+            id_string, canonical_id))
+        self.ids_to_replace[id_string] = canonical_id
+
+    def _build_canonical_id(self, id_string):
+        """Builds a canonical form of the `id_string` by replacing invalid characters.
+
+        Parameters
+        ----------
+        id_string: str, required
+            The id to make canonical.
+
+        Returns
+        -------
+        canonical_id: str
+            The id where all the invalid characters were replaced.
+        """
         invalid_characters = [
             letter for letter in id_string
             if letter in self.id_char_replacements
         ]
-        logging.info("Person id {} contains invalid characters {}.".format(
-            id_string, invalid_characters))
-        if id_string in self.ids_to_replace:
-            return
+
         canonical_id = id_string
         for c in invalid_characters:
             replacement = self.id_char_replacements[c]
             canonical_id = canonical_id.replace(c, replacement)
-        logging.info("Scheduling id {} to be replaced with {}.".format(
-            id_string, canonical_id))
-        self.ids_to_replace[id_string] = canonical_id
+
+        return canonical_id
 
     def _contains_invalid_characters(self, id_string):
         """Checks if the provided id contains invalid characters.
@@ -1072,9 +1093,10 @@ class RootXmlBuilder:
         """
         pattern = "RoParl.Org.{}"
         if (acronym is not None) and (len(acronym) > 0):
-            return pattern.format(acronym)
-        separators = "()-"
-        replacements = {'(': '', ')': '', '-': ' ', 'Ț': 'T', 'Ș': 'S'}
+            org_id = pattern.format(acronym)
+            return self._build_canonical_id(org_id)
+
+        replacements = {'(': '', ')': '', '-': ' '}
         for char, replacement in replacements.items():
             name = name.replace(char, replacement)
         parts = name.split()
@@ -1083,9 +1105,9 @@ class RootXmlBuilder:
                 part[0].upper() if not part.isupper() else part
                 for part in parts
             ]
-            return pattern.format(''.join(acronym))
+            return self._build_canonical_id(pattern.format(''.join(acronym)))
 
-        return pattern.format(name.capitalize())
+        return self._build_canonical_id(pattern.format(name.capitalize()))
 
 
 class XmlIdBuilder:
