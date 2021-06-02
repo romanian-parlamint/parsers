@@ -702,10 +702,10 @@ class RootXmlBuilder:
         person_name = etree.SubElement(person, XmlElements.persName)
         for part in first_name:
             forename = etree.SubElement(person_name, XmlElements.forename)
-            forename.text = part
+            forename.text = part.capitalize()
         for part in last_name:
             surname = etree.SubElement(person_name, XmlElements.surname)
-            surname.text = part
+            surname.text = part.capitalize()
         sex = etree.SubElement(person, XmlElements.sex)
         sex.set(XmlAttributes.value, gender[0])
         sex.text = gender
