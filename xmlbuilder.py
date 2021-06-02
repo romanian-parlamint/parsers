@@ -8,7 +8,7 @@ from parsing import parse_organization_name, SessionParser
 from nltk.tokenize import word_tokenize
 from pathlib import Path
 from common import StringFormatter
-from common import build_speaker_id, OrganizationType
+from common import build_speaker_id, Gender, OrganizationType
 import subprocess
 from collections import namedtuple
 from dateutil import parser
@@ -545,8 +545,8 @@ class RootXmlBuilder:
                     existing_person = self._add_person(
                         person_list, speaker_id,
                         dep_info.first_name.split(' '),
-                        dep_info.last_name.split(' '),
-                        "Male" if dep_info.gender == "M" else "Female",
+                        dep_info.last_name.split(' '), Gender.Male
+                        if dep_info.gender == "M" else Gender.Female,
                         dep_info.image_url)
                 # This is a known person that has already been added to the person list.
                 self._update_speaker_affiliation(existing_person, session_date)
@@ -815,15 +815,15 @@ class RootXmlBuilder:
         """
         for part in first_names:
             if part in self.male_names:
-                return "Male"
+                return Gender.Male
             if part in self.female_names:
-                return "Female"
+                return Gender.Female
         # None of the first names are known
         # Try to infer the gender
         for part in first_names:
             if part[-1] == 'a':
-                return "Female"
-        return "Male"
+                return Gender.Female
+        return Gender.Male
 
     def _split_names_by_gender(self):
         """Iterates over the names map and splits the first names into male and female specific.

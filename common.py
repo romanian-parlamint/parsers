@@ -45,6 +45,13 @@ class OrganizationType:
     EthnicCommunity = 'ethnicCommunity'
 
 
+class Gender:
+    """Represents values for gender.
+    """
+    Male = 'Masculin'
+    Female = 'Feminin'
+
+
 class SessionType:
     """Encodes the values for session types.
     """
