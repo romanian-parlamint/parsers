@@ -11,3 +11,4 @@
 4. Run `python build-corpus-root.py` to build the corpus root file using:
    1. `./output` - directory containing individual TEI corpus files
    2. `deputy-affiliations.csv` - the file containing corpus metadata, after it was inspected and corrected by the human experts.
+5. Remove duplicate entries in `listPerson` element and fix any other errors manually. This is required because some of the speakers are missing data and it's easier to just apply the fixes by hand.
