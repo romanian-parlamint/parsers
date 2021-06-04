@@ -27,13 +27,19 @@ def run(args):
                              deputy_info,
                              organizations,
                              id_char_replacements=id_char_replacements)
-    builder.build_corpus_root(args.corpus_dir)
-    print(builder.id_replacement_list)
+    builder.build_corpus_root(args.corpus_dir,
+                              file_name=args.file_name,
+                              apply_postprocessing=args.apply_postprocessing)
     logging.info("That's all folks!")
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Build TEI corpus root file.')
+    parser.add_argument(
+        '-f',
+        '--file-name',
+        help="The name of the corpus root file. Default is ParlaMint-RO.xml",
+        default="ParlaMint-RO.xml")
     parser.add_argument(
         '--deputy-info-file',
         help=
@@ -53,6 +59,12 @@ def parse_arguments():
         help=
         "The map of characters that are invalid in id strings and their replacements.",
         default="ȘS;șs;ȚT;țt")
+    parser.add_argument(
+        '--no-postprocessing',
+        help=
+        "When supplied specifies that no postprocessing (i.e. correction of ids) should be applied. Default is False",
+        dest='apply_postprocessing',
+        action='store_false')
     parser.add_argument(
         '-l',
         '--log-level',
