@@ -470,7 +470,10 @@ class RootXmlBuilder:
         return [(id_string, canonical_id)
                 for id_string, canonical_id in self.ids_to_replace.items()]
 
-    def build_corpus_root(self, corpus_dir, file_name="ParlaMint-RO.xml"):
+    def build_corpus_root(self,
+                          corpus_dir,
+                          file_name="ParlaMint-RO.xml",
+                          apply_postprocessing=True):
         """Builds the corpus root file by aggregating corpus files in corpus_dir.
 
         Parameters
@@ -479,6 +482,9 @@ class RootXmlBuilder:
             The path to the directory containing corpus files.
         file_name: str, optional
             The name of the output file. Default is `ParlaMint-RO.xml`.
+        apply_postprocessing: bool, optional
+            Specifies whether to apply any postprocessing actions like replacing invalid characters in ids.
+            Default is True.
         """
         self.corpus_dir = Path(corpus_dir)
         self._build_organizations_list()
@@ -491,6 +497,62 @@ class RootXmlBuilder:
             self._add_or_update_speakers(corpus_component)
             self._add_component_file(component_file)
         self._write_file(file_name)
+        logging.info("Finished building root file of the corpus.")
+        if apply_postprocessing:
+            logging.info("Post-processing is enabled.")
+            self._apply_id_correction(self.corpus_dir, file_name)
+
+    def _apply_id_correction(self, corpus_dir, root_file_name):
+        """Iterates over the files in corpus directory and replaces the ids containing invalid characters with the normalized ones.
+
+        Parameters
+        ----------
+        corpus_dir: pathlib.Path, required
+            The path of the corpus directory.
+        root_file_name: str, required
+            The name of the root file of the corpus within `corpus_dir`.
+        """
+        logging.info("Applying id correction to corpus files.")
+        for component_file in self._iter_files(corpus_dir, root_file_name):
+            self._correct_ids_in_file(component_file)
+        logging.info("Applying id correction to root file.")
+        for person in self.corpus_root.iterdescendants(tag=XmlElements.person):
+            speaker_id = person.get(XmlAttributes.xml_id)
+            if speaker_id in self.ids_to_replace:
+                person.set(XmlAttributes.xml_id,
+                           self.ids_to_replace[speaker_id])
+        logging.info("Saving root file.")
+        self._write_file(root_file_name)
+        logging.info("Finished applying id correction.")
+
+    def _correct_ids_in_file(self, component_file):
+        """Replaces the ids containing invalids values to canonical ones in the specified component file.
+
+        Parameters
+        ----------
+        component_file: pathlib.Path, required
+            The path of the file to replace the ids in.
+        """
+        file_name = str(component_file)
+        logging.info("Correcting the ids in file {}.".format(file_name))
+        xml_root = _parse_template_file(file_name)
+        corpus_component = xml_root.getroot()
+        corrections_applied = False
+        for u in corpus_component.iterdescendants(tag=XmlElements.u):
+            speaker_id = u.get(XmlAttributes.who).strip('#')
+            if speaker_id in self.ids_to_replace:
+                cannonical_id = self.ids_to_replace[speaker_id]
+                u.set(XmlAttributes.who, "#{}".format(cannonical_id))
+                corrections_applied = True
+        if corrections_applied:
+            logging.info("Saving file {}.".format(file_name))
+            xml_root.write(file_name,
+                           pretty_print=True,
+                           encoding='utf-8',
+                           xml_declaration=True)
+        else:
+            logging.info(
+                "File {} has no ids to be corrected.".format(file_name))
 
     def _add_component_file(self, component_file):
         """Adds the `component_file` to the list of included files in the corpus.
