@@ -422,6 +422,27 @@ def parse_xml_file(file_name):
     return xml_tree
 
 
+def save_xml(xml, file_name, use_xmllint=True):
+    """Saves the provided XML tree to the specified file and optionally applies xmllint.
+
+    Parameters
+    ----------
+    xml : etree.ElementRoot, required
+        The XML tree to save to disk.
+    file_name : str, required
+        The file where to save the XML.
+    use_xmllint: bool, optional
+        Specifies whether to apply xmllint or not.
+        Default is `True`.
+    """
+    xml.write(file_name,
+              pretty_print=True,
+              encoding='utf-8',
+              xml_declaration=True)
+    if use_xmllint:
+        apply_xmllint(file_name)
+
+
 DeputyInfo = namedtuple("DeputyInfo",
                         ['first_name', 'last_name', 'gender', 'image_url'])
 
