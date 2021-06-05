@@ -132,12 +132,7 @@ class SessionXmlBuilder:
             file_name = Path(self.output_directory, file_name)
 
         file_name = str(file_name)
-        self.element_tree.write(file_name,
-                                pretty_print=True,
-                                encoding='utf-8',
-                                xml_declaration=True)
-        if use_xmllint:
-            apply_xmllint(file_name)
+        save_xml(self.element_tree, file_name, use_xmllint=use_xmllint)
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
@@ -567,10 +562,7 @@ class RootXmlBuilder:
                 corrections_applied = True
         if corrections_applied:
             logging.info("Saving file {}.".format(file_name))
-            xml_root.write(file_name,
-                           pretty_print=True,
-                           encoding='utf-8',
-                           xml_declaration=True)
+            save_xml(xml_root, file_name)
         else:
             logging.info(
                 "File {} has no ids to be corrected.".format(file_name))
@@ -1084,10 +1076,7 @@ class RootXmlBuilder:
         """
         file_name = Path(self.corpus_dir, file_name)
         file_name = str(file_name)
-        self.xml_root.write(file_name,
-                            pretty_print=True,
-                            encoding='utf-8',
-                            xml_declaration=True)
+        save_xml(self.xml_root, file_name)
 
     def _build_organizations_list(self):
         """Builds the list of organizations from affiliation records.
