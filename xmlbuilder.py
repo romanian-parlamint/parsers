@@ -48,6 +48,11 @@ class XmlElements:
     affiliation = '{http://www.tei-c.org/ns/1.0}affiliation'
     figure = '{http://www.tei-c.org/ns/1.0}figure'
     graphic = '{http://www.tei-c.org/ns/1.0}graphic'
+    s = '{http://www.tei-c.org/ns/1.0}s'
+    w = '{http://www.tei-c.org/ns/1.0}w'
+    pc = '{http://www.tei-c.org/ns/1.0}pc'
+    linkGrp = '{http://www.tei-c.org/ns/1.0}linkGrp'
+    link = '{http://www.tei-c.org/ns/1.0}link'
 
 
 class XmlAttributes:
@@ -70,6 +75,12 @@ class XmlAttributes:
     url = 'url'
     ref = 'ref'
     role = 'role'
+    msd = 'msd'
+    pos = 'pos'
+    lemma = 'lemma'
+    targFunc = 'targFunc'
+    type_ = 'type'
+    target = 'target'
 
 
 class SessionXmlBuilder:
