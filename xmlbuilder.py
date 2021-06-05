@@ -97,7 +97,7 @@ class SessionXmlBuilder:
         self.formatter = StringFormatter()
         self.output_directory = output_directory
         self.output_file_prefix = output_file_prefix
-        self.element_tree = _parse_template_file(template_file)
+        self.element_tree = parse_xml_file(template_file)
         self.xml = self.element_tree.getroot()
         for div in self.xml.iterdescendants(XmlElements.div):
             if div.get(XmlAttributes.element_type) == "debateSection":
@@ -402,17 +402,18 @@ def _apply_xmllint(file_name):
     proc.wait()
 
 
-def _parse_template_file(file_name):
-    """Parses the template file.
+def parse_xml_file(file_name):
+    """Parses the specified XML file.
 
     Parameters
     ----------
     file_name: str, required
-        The name of the output file template.
+        The name of the XML file.
 
     Returns
     -------
-    xml_tree: XML tree template
+    xml_tree: etree.ElementTree
+        The XML tree from the file.
     """
     parser = etree.XMLParser(remove_blank_text=True)
     xml_tree = etree.parse(file_name, parser)
@@ -449,7 +450,7 @@ class RootXmlBuilder:
         id_char_replacements: dict of (str, str), optional
             A dict containing the uppercase and lowercase characters that are not valid for id strings and their replacements.
         """
-        self.xml_root = _parse_template_file(template_file)
+        self.xml_root = parse_xml_file(template_file)
         self.corpus_root = self.xml_root.getroot()
         self.deputy_info = deputy_info
         self.organizations = organizations
@@ -491,8 +492,7 @@ class RootXmlBuilder:
         for component_file in self._iter_files(self.corpus_dir, file_name):
             logging.info("Adding file {} to corpus root.".format(
                 str(component_file)))
-            corpus_component = _parse_template_file(
-                str(component_file)).getroot()
+            corpus_component = parse_xml_file(str(component_file)).getroot()
             self._update_tag_usage(corpus_component)
             self._add_or_update_speakers(corpus_component)
             self._add_component_file(component_file)
@@ -535,7 +535,7 @@ class RootXmlBuilder:
         """
         file_name = str(component_file)
         logging.info("Correcting the ids in file {}.".format(file_name))
-        xml_root = _parse_template_file(file_name)
+        xml_root = parse_xml_file(file_name)
         corpus_component = xml_root.getroot()
         corrections_applied = False
         for u in corpus_component.iterdescendants(tag=XmlElements.u):
