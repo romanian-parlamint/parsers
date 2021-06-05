@@ -137,7 +137,7 @@ class SessionXmlBuilder:
                                 encoding='utf-8',
                                 xml_declaration=True)
         if use_xmllint:
-            _apply_xmllint(file_name)
+            apply_xmllint(file_name)
 
     def build_session_xml(self):
         """Builds the session XML from its transcription.
@@ -386,7 +386,7 @@ class SessionXmlBuilder:
         self.xml.set(XmlAttributes.xml_id, self.id_builder.session_id)
 
 
-def _apply_xmllint(file_name):
+def apply_xmllint(file_name):
     """Formats the specified file using xmllint.
 
     Parameters
