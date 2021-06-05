@@ -103,9 +103,47 @@ class CorpusComponentAnnotator:
             self._replace_segment_text(seg, sentences)
             self._append_sentences_to_output(sentences, document_id,
                                              paragraph_id)
-        # self._update_tag_usage(corpus_component)
+        self._update_tag_usage()
         save_xml(self.xml, str(self.annotated_file))
         self._write_conllu()
+
+    def _update_tag_usage(self):
+        """Updates the tag usage declaration with statistics for lexical annotation tags.
+        """
+        name_map = {
+            's': XmlElements.s,
+            'w': XmlElements.w,
+            'pc': XmlElements.pc,
+            'linkGrp': XmlElements.linkGrp,
+            'link': XmlElements.link
+        }
+        for key, tag in name_map.items():
+            element = self._get_or_add_tag_usage(key)
+            tags = [t for t in self.corpus_component.iterdescendants(tag=tag)]
+            element.set(XmlAttributes.occurs, str(len(tags)))
+
+    def _get_or_add_tag_usage(self, gi_value):
+        """Searches for a `tagUsage` element with the provided gi attribute. If not found, creates it.
+
+        Parameters
+        ----------
+        gi_value: str, required
+            The value of `gi` attribute.
+
+        Returns
+        -------
+        tag_usage: etree.Element
+            The tagUsage element.
+        """
+        for tag_usage in self.corpus_component.iterdescendants(
+                tag=XmlElements.tagUsage):
+            if tag_usage.get(XmlAttributes.gi) == gi_value:
+                return tag_usage
+        parent = tag_usage.getparent()
+        tag_usage = etree.SubElement(parent, XmlElements.tagUsage)
+        tag_usage.set(XmlAttributes.gi, gi_value)
+        tag_usage.set(XmlAttributes.occurs, '0')
+        return tag_usage
 
     def _replace_segment_text(self, segment, sentences):
         """Replaces the text of the specified segment with the provided sentences.
