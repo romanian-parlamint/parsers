@@ -99,10 +99,11 @@ class CorpusComponentAnnotator:
             paragraph_id = seg.get(XmlAttributes.xml_id)
             logging.info("Processing segment {} of utterance {}".format(
                 paragraph_id, document_id))
-            sentences = self.udpipe.process(seg.text)
-            self._replace_segment_text(seg, sentences)
-            self._append_sentences_to_output(sentences, document_id,
-                                             paragraph_id)
+            if (seg.text is not None) and (len(seg.text) > 0):
+                sentences = self.udpipe.process(seg.text)
+                self._replace_segment_text(seg, sentences)
+                self._append_sentences_to_output(sentences, document_id,
+                                                 paragraph_id)
         self._update_tag_usage()
         save_xml(self.xml, str(self.annotated_file))
         self._write_conllu()
