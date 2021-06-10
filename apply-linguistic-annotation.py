@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from lexicalanalysis import CorpusComponentAnnotator, CorpusIterator, UDPipe
+from lexicalanalysis import AnnotatedFilesAggregator, CorpusComponentAnnotator, CorpusIterator, UDPipe
 import logging
 import argparse
 from xmlbuilder import parse_xml_file, XmlAttributes, XmlElements
@@ -13,14 +13,8 @@ def main(args):
             skip_annotated=args.resume):
         annotator = CorpusComponentAnnotator(component_file, udpipe)
         annotator.apply_annotation()
-    for annotated_file in iterator.iter_annotated_files():
-        print(str(annotated_file))
-    # for each segment:
-    # - call UDPipe
-    # - replace segment text with sentences and words
-    # - add segment text to CoNLL-U string
-    # save xml root to component_file.ana.xml
-    # save CoNLL-U string to component_file.conllu
+    aggregator = AnnotatedFilesAggregator(iterator)
+    aggregator.aggregate_corpus_info()
 
 
 def parse_arguments():
