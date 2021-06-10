@@ -1,7 +1,7 @@
 from conllu import parse as parse_conllu
 import requests
 from pathlib import Path
-from xmlbuilder import parse_xml_file, save_xml, XmlAttributes, XmlElements
+from xmlbuilder import parse_xml_file, save_xml, XmlAttributes, XmlElements, add_component_file_to_corpus_root
 import logging
 from lxml import etree
 
@@ -161,6 +161,67 @@ class UDPipe:
         return document
 
 
+class TagUsageCounter:
+    """Class responsible for updating tagUsage elements within a XML document.
+    """
+    def __init__(self):
+        """Initializes a new instance of TagUsageCounter.
+        """
+        self.name_map = {
+            's': XmlElements.s,
+            'w': XmlElements.w,
+            'pc': XmlElements.pc,
+            'linkGrp': XmlElements.linkGrp,
+            'link': XmlElements.link
+        }
+
+    def update_tag_usage(self, tag_usage_root, countable_elements_root):
+        """Updates the tag usage declaration with statistics for lexical annotation tags.
+
+        Parameters
+        ----------
+        tag_usage_root: etree.Element, required
+            The element that has tagUsage elements to be updated as its descendants.
+        countable_elements_root: etree.Element, required
+            The element that has nodes to be counted.
+        """
+        for key, tag in self.name_map.items():
+            element = self._get_or_add_tag_usage(tag_usage_root, key)
+            value = element.get(XmlAttributes.occurs)
+            if (value is not None) and (len(value) > 0):
+                value = int(value)
+            tags = [
+                t for t in countable_elements_root.iterdescendants(tag=tag)
+            ]
+            value = value + len(tags)
+            element.set(XmlAttributes.occurs, str(value))
+
+    def _get_or_add_tag_usage(self, tag_usage_root, gi_value):
+        """Searches for a `tagUsage` element with the provided gi attribute. If not found, creates it.
+
+        Parameters
+        ----------
+        tag_usage_root: etree.Element, required
+            The element that has tagUsage elements as its descendants.
+        gi_value: str, required
+            The value of `gi` attribute.
+
+        Returns
+        -------
+        tag_usage: etree.Element
+            The tagUsage element.
+        """
+        for tag_usage in tag_usage_root.iterdescendants(
+                tag=XmlElements.tagUsage):
+            if tag_usage.get(XmlAttributes.gi) == gi_value:
+                return tag_usage
+        parent = tag_usage.getparent()
+        tag_usage = etree.SubElement(parent, XmlElements.tagUsage)
+        tag_usage.set(XmlAttributes.gi, gi_value)
+        tag_usage.set(XmlAttributes.occurs, '0')
+        return tag_usage
+
+
 class CorpusComponentAnnotator:
     """Applies linguistic annotation to a corpus component file.
     """
@@ -208,40 +269,8 @@ class CorpusComponentAnnotator:
     def _update_tag_usage(self):
         """Updates the tag usage declaration with statistics for lexical annotation tags.
         """
-        name_map = {
-            's': XmlElements.s,
-            'w': XmlElements.w,
-            'pc': XmlElements.pc,
-            'linkGrp': XmlElements.linkGrp,
-            'link': XmlElements.link
-        }
-        for key, tag in name_map.items():
-            element = self._get_or_add_tag_usage(key)
-            tags = [t for t in self.corpus_component.iterdescendants(tag=tag)]
-            element.set(XmlAttributes.occurs, str(len(tags)))
-
-    def _get_or_add_tag_usage(self, gi_value):
-        """Searches for a `tagUsage` element with the provided gi attribute. If not found, creates it.
-
-        Parameters
-        ----------
-        gi_value: str, required
-            The value of `gi` attribute.
-
-        Returns
-        -------
-        tag_usage: etree.Element
-            The tagUsage element.
-        """
-        for tag_usage in self.corpus_component.iterdescendants(
-                tag=XmlElements.tagUsage):
-            if tag_usage.get(XmlAttributes.gi) == gi_value:
-                return tag_usage
-        parent = tag_usage.getparent()
-        tag_usage = etree.SubElement(parent, XmlElements.tagUsage)
-        tag_usage.set(XmlAttributes.gi, gi_value)
-        tag_usage.set(XmlAttributes.occurs, '0')
-        return tag_usage
+        counter = TagUsageCounter()
+        counter.update_tag_usage(self.corpus_component, self.corpus_component)
 
     def _replace_segment_text(self, segment, sentences):
         """Replaces the text of the specified segment with the provided sentences.
@@ -467,3 +496,30 @@ class CorpusComponentAnnotator:
         annotated_file = Path(parent, '{}.ana.xml'.format(stem))
         conllu_file = Path(parent, '{}.conllu'.format(stem))
         return annotated_file, conllu_file
+
+
+class AnnotatedFilesAggregator:
+    """Aggregates the info from annotated files and saves it into the root file.
+    """
+    def __init__(self, corpus_iterator):
+        """Creates a new instance of AnnotatedFilesAggregator.
+
+        Parameters
+        ----------
+        corpus_iterator : CorpusIterator, required
+            The iterator instance that provides access to annotated files and root file.
+        """
+        self.corpus_iterator = corpus_iterator
+        self.root_file = str(corpus_iterator.annotated_root_file)
+        self.xml = parse_xml_file(self.root_file)
+        self.corpus_root = self.xml.getroot()
+
+    def aggregate_corpus_info(self):
+        """Iterates over annotated corpus files and aggregates their info into the root file.
+        """
+        counter = TagUsageCounter()
+        for component_file in self.corpus_iterator.iter_annotated_files():
+            component = parse_xml_file(str(component_file)).getroot()
+            counter.update_tag_usage(self.corpus_root, component)
+            add_component_file_to_corpus_root(component_file, self.corpus_root)
+        save_xml(self.xml, self.root_file)
