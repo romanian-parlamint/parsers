@@ -449,6 +449,25 @@ def save_xml(xml, file_name, use_xmllint=True):
         apply_xmllint(file_name)
 
 
+def add_component_file_to_corpus_root(component_file, corpus_root):
+    """Adds the `component_file` to the list of included files in the corpus.
+
+    Parameters
+    ----------
+    component_file: pathlib.Path, required
+        The path of the component file.
+    corpus_root: etree.Element, required
+        The corpus root element.
+    """
+    file_name = component_file.name
+    logging.info("Addind file {} to included files.".format(file_name))
+    # I don't have time to investigate how to do this properly so I'm applying this hack.
+    include_element = etree.fromstring(
+        '<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="{}"/>'.
+        format(file_name))
+    corpus_root.append(include_element)
+
+
 DeputyInfo = namedtuple("DeputyInfo",
                         ['first_name', 'last_name', 'gender', 'image_url'])
 
@@ -587,13 +606,7 @@ class RootXmlBuilder:
             The path of the component file.
         """
         file_name = Path(component_file)
-        logging.info("Addind file {} to included files.".format(
-            file_name.name))
-        # I don't have time to investigate how to do this properly so I'm applying this hack.
-        include_element = etree.fromstring(
-            '<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="{}"/>'
-            .format(file_name.name))
-        self.corpus_root.append(include_element)
+        add_component_file_to_corpus_root(file_name, self.corpus_root)
 
     def _add_or_update_speakers(self, corpus_component):
         """Iterates over the speakers from the `corpus_component` and adds them to the list of speakers or updates their affiliation.
