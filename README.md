@@ -219,3 +219,7 @@
 	 - Arguments:
 		 - `corpus-dir` -- the corpus directory
 		 - `root-file` -- the name of the root file of the corpus.
+   - `add-tags` -- will add the `[ParlaMint]` and `[ParlaMint.ana]` tags to the corpus files.
+	 - Arguments:
+		 - `corpus-dir` -- the corpus directory
+		 - `root-file` -- the name of the root file of the corpus.

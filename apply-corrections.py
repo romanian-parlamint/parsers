@@ -3,7 +3,63 @@
 import logging
 import argparse
 from lexicalanalysis import CorpusIterator
-from xmlbuilder import parse_xml_file, save_xml, XmlElements
+from xmlbuilder import parse_xml_file, save_xml, XmlAttributes, XmlElements
+
+
+def load_component(file_name):
+    """Loads the XML from component file specified by `file_name`.
+
+    Parameters
+    ----------
+    file_name: str, required
+        The path of the file to load.
+
+    Returns
+    (xml, component): tuple of (ElementTree, Element)
+        The element tree and the root element.
+    """
+    xml = parse_xml_file(file_name)
+    component = xml.getroot()
+    return xml, component
+
+
+def add_title_tag_to_file(file_name, tag):
+    """Adds the specified tag to the title of the specified file.
+
+    Parameters
+    ----------
+    file_name: str, required
+        The path of the file to load.
+    tag: str, required
+        The tag to add to the file.
+    """
+    logging.info("Adding tag {} to file {}.".format(tag, file_name))
+    xml, component = load_component(file_name)
+    titleStm = next(component.iterdescendants(tag=XmlElements.titleStmt))
+    for title in titleStm.iterdescendants(tag=XmlElements.title):
+        if title.get(XmlAttributes.type_) != 'main':
+            continue
+        if tag not in title.text:
+            title.text = "{} {}".format(title.text, tag)
+    save_xml(xml, file_name)
+
+
+def add_title_tags(args):
+    """Iterates over corpus files and adds tags to their titles.
+    """
+    logging.info("Adding title tags to corpus files.")
+    corpus_iterator = CorpusIterator(args.corpus_dir, args.root_file)
+    # Add tag to unannotated files
+    add_title_tag_to_file(str(corpus_iterator.root_file), "[ParlaMint]")
+    for file_path in corpus_iterator.iter_corpus_files():
+        file_name = str(file_path)
+        add_title_tag_to_file(file_name, "[ParlaMint]")
+    # Add tag to annotated files
+    add_title_tag_to_file(str(corpus_iterator.annotated_corpus_root_file),
+                          "[ParlaMint.ana]")
+    for file_path in corpus_iterator.iter_annotated_files():
+        file_name = str(file_path)
+        add_title_tag_to_file(file_name, "[ParlaMint.ana]")
 
 
 def remove_empty_segments_from_file(file_name):
@@ -14,8 +70,8 @@ def remove_empty_segments_from_file(file_name):
     file_name: str, required
         The path of the file from which to remove empty segments.
     """
-    xml = parse_xml_file(file_name)
-    component = xml.getroot()
+    xml, component = load_component(file_name)
+
     segments = [
         seg for seg in component.iterdescendants(tag=XmlElements.seg)
         if len(seg) == 0
@@ -45,6 +101,17 @@ def remove_empty_segments(args):
         remove_empty_segments_from_file(str(file_name))
 
 
+def add_corpus_iterator_args(parser):
+    parser.add_argument(
+        '--corpus-dir',
+        help="Path to the directory containing corpus. Default is ./output",
+        default='./output')
+    parser.add_argument(
+        '--root-file',
+        help="The name of the corpus root file. Default is ParlaMint-RO.xml",
+        default="ParlaMint-RO.xml")
+
+
 def parse_arguments():
     root_parser = argparse.ArgumentParser(
         description='Apply corrections to corpus')
@@ -55,18 +122,20 @@ def parse_arguments():
         choices=['debug', 'info', 'warning', 'error', 'critical'],
         default='info')
     subparsers = root_parser.add_subparsers()
+
     remove_segments = subparsers.add_parser(
         'remove-empty-segments',
         help="Removes the empty segments from corpus component files.")
     remove_segments.set_defaults(func=remove_empty_segments)
-    remove_segments.add_argument(
-        '--corpus-dir',
-        help="Path to the directory containing corpus. Default is ./output",
-        default='./output')
-    remove_segments.add_argument(
-        '--root-file',
-        help="The name of the corpus root file. Default is ParlaMint-RO.xml",
-        default="ParlaMint-RO.xml")
+    add_corpus_iterator_args(remove_segments)
+
+    add_tags = subparsers.add_parser(
+        'add-tags',
+        help=
+        "Adds the [ParlaMint] and [ParlaMint.ana] tags to the corpus files.")
+    add_tags.set_defaults(func=add_title_tags)
+    add_corpus_iterator_args(add_tags)
+
     return root_parser.parse_args()
 
 
