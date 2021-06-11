@@ -85,15 +85,34 @@ class CorpusIterator:
                 continue
             yield file_path
 
+    def get_component_file_name(self, file_path):
+        """Gets the name of the component file associated with the provided file.
+
+        Parameters
+        ----------
+        file_path: pathlib.Path, required
+            The path of the file for which to get the component file.
+
+        Returns
+        -------
+        component_file: pathlib.Path
+            The component file path.
+        """
+        stem = self._get_file_name_without_extensions(file_path)
+        component_file = Path(file_path).with_stem(stem)
+        component_file = component_file.with_suffix(".xml")
+        return component_file
+
     def _get_file_name_without_extensions(self, file_path):
         """Gets the file name by replacing all extensions with empty strings.
 
         Parameters
         ----------
-        file_path: urllib.Path, required
+        file_path: pathlib.Path, required
             The path of the file.
 
         Returns
+        -------
         stem: str
             File name without extensions.
         """
