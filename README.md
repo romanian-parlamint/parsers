@@ -214,3 +214,8 @@
    - Remove `<xsi:include>` elements
    - Save the file
 7. Run `python apply-linguistic-annotation.py` to perform linguistic annotations on the corpus.
+8. Run `python apply-corrections.py <correction> <arguments>` to apply corrections, whre `<verb>` is one of the following:
+   - `remove-empty-segments` -- will remove the empty segments from corpus files and annotated corpus files.
+	 - Arguments:
+		 - `corpus-dir` -- the corpus directory
+		 - `root-file` -- the name of the root file of the corpus.
