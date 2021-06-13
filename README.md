@@ -223,3 +223,7 @@
 	 - Arguments:
 		 - `corpus-dir` -- the corpus directory
 		 - `root-file` -- the name of the root file of the corpus.
+   - `fix-tli` -- will add the `.ana` suffix to the top-level ids of the annotated corpus files and annotated root file.
+	 - Arguments:
+		 - `corpus-dir` -- the corpus directory
+		 - `root-file` -- the name of the root file of the corpus.

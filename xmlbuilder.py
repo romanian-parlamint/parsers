@@ -15,6 +15,7 @@ from dateutil import parser
 
 
 class XmlElements:
+    TEI = '{http://www.tei-c.org/ns/1.0}TEI'
     titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
     title = '{http://www.tei-c.org/ns/1.0}title'
     meeting = '{http://www.tei-c.org/ns/1.0}meeting'

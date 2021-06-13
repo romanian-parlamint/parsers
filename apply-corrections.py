@@ -23,6 +23,27 @@ def load_component(file_name):
     return xml, component
 
 
+def fix_top_level_ids(args):
+    """Fixes the top-level ids of the annotated files.
+    """
+    logging.info("Fixing top-level ids of annotated files.")
+    corpus_iterator = CorpusIterator(args.corpus_dir, args.root_file)
+    for file_path in corpus_iterator.iter_annotated_files():
+        file_name = str(file_path)
+        logging.info("Fixing top-level id for component {}.".format(file_name))
+        xml, component = load_component(file_name)
+        component_id = component.get(XmlAttributes.xml_id)
+        component.set(XmlAttributes.xml_id, "{}.ana".format(component_id))
+        save_xml(xml, file_name)
+
+    file_name = str(corpus_iterator.annotated_corpus_root_file)
+    logging.info("Fixing top-level id for root file {}.".format(file_name))
+    xml, corpus = load_component(file_name)
+    corpus_id = corpus.get(XmlAttributes.xml_id)
+    corpus.set(XmlAttributes.xml_id, "{}.ana".format(corpus_id))
+    save_xml(xml, file_name)
+
+
 def add_title_tag_to_file(file_name, tag):
     """Adds the specified tag to the title of the specified file.
 
@@ -135,6 +156,11 @@ def parse_arguments():
         "Adds the [ParlaMint] and [ParlaMint.ana] tags to the corpus files.")
     add_tags.set_defaults(func=add_title_tags)
     add_corpus_iterator_args(add_tags)
+
+    fix_tli = subparsers.add_parser(
+        'fix-tli', help="Fixes the top-level ids of the annotated files.")
+    fix_tli.set_defaults(func=fix_top_level_ids)
+    add_corpus_iterator_args(fix_tli)
 
     return root_parser.parse_args()
 
