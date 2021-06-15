@@ -4,6 +4,7 @@ import logging
 import argparse
 from lexicalanalysis import CorpusIterator
 from xmlbuilder import parse_xml_file, save_xml, XmlAttributes, XmlElements
+from itertools import chain
 
 
 def load_component(file_name):
@@ -21,6 +22,24 @@ def load_component(file_name):
     xml = parse_xml_file(file_name)
     component = xml.getroot()
     return xml, component
+
+
+def fix_corresp_attribute(args):
+    """Replaces the value of `corresp` attribute with provided value.
+    """
+    logging.info("Replacing the value of corresp attributes.")
+    corpus_iterator = CorpusIterator(args.corpus_dir, args.root_file)
+    files = chain(corpus_iterator.iter_corpus_files(),
+                  corpus_iterator.iter_annotated_files())
+    for file_path in files:
+        file_name = str(file_path)
+        logging.info(
+            "Replacing the value of corresp attribute in file {}.".format(
+                file_name))
+        xml, component = load_component(file_name)
+        meeting = next(component.iterdescendants(tag=XmlElements.meeting))
+        meeting.set(XmlAttributes.corresp, args.value)
+        save_xml(xml, file_name)
 
 
 def fix_top_level_ids(args):
@@ -162,6 +181,15 @@ def parse_arguments():
     fix_tli.set_defaults(func=fix_top_level_ids)
     add_corpus_iterator_args(fix_tli)
 
+    parser = subparsers.add_parser(
+        'replace-corresp',
+        help="Replaces the value of corresp attribute of the meeting element.")
+    parser.set_defaults(func=fix_corresp_attribute)
+    add_corpus_iterator_args(parser)
+    parser.add_argument(
+        '--value',
+        help="The value to replace with. Default is '#parla.lower'.",
+        default='#parla.lower')
     return root_parser.parse_args()
 
 

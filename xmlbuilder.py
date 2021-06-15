@@ -82,6 +82,7 @@ class XmlAttributes:
     targFunc = 'targFunc'
     type_ = 'type'
     target = 'target'
+    corresp = 'corresp'
 
 
 class SessionXmlBuilder:
