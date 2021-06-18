@@ -241,6 +241,83 @@ class TagUsageCounter:
         return tag_usage
 
 
+class LinkGroupBuilder:
+    """Builds the `linkGrp` element of a sentence.
+    """
+    def __init__(self, sentence):
+        """Creates a new instance of LinkGroupBuilder for the specified sentence.
+        """
+        self.conllu_sentence = sentence
+
+    def build_from(self, conllu_sentence):
+        """Builds the `linkGrp` element from the provided sentence in CoNLL-U format.
+
+        Parameters
+        ----------
+        conllu_sentence: conllu.models.TokenList, required
+            The sentence in CoNLL-U format.
+        """
+        linkGrp = self._build_link_group_element(self.sentence)
+        for token in conllu_sentence:
+            _ = self._add_link_to_group(token, conllu_sentence, linkGrp)
+
+    def _add_link_to_group(self, token, sentence, link_group):
+        """Adds a `link` element to the specified `linkGrp` element.
+
+        Parameters
+        ----------
+        token: conllu.models.Token, required
+            The token that is the origin of the link.
+        sentence: conllu.models.TokenList, required
+            The list of tokens containing the head element.
+        link_group: etree.Element, required
+            The parent `linkGrp` element.
+
+        Returns
+        -------
+        link: etree.Element
+            The newly created `link` element or None if token is the root element.
+        """
+        head = None
+        for tok in sentence:
+            if tok['id'] == token['head']:
+                head = tok
+                break
+        link = etree.Element(XmlElements.link)
+        rel = "ud-syn:{}".format(token['deprel']).replace(':', '_')
+        link.set(XmlAttributes.ana, rel)
+        if (head is None) and (len(sentence) > 1):
+            # token is the root element
+            tail_node_id = head['misc'][XmlAttributes.xml_id]
+            head_node_id = link_group.getparent().get(XmlAttributes.xml_id)
+            link.set(
+                XmlAttributes.target,
+                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
+            return None
+        tail_node_id = token['misc'][XmlAttributes.xml_id]
+        if head is not None:
+            head_node_id = head['misc'][XmlAttributes.xml_id]
+            link.set(
+                XmlAttributes.target,
+                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
+        else:
+            link.set(XmlAttributes.target, '#{}'.format(tail_node_id))
+        link_group.append(link)
+
+    def _build_link_group_element(self, sentence_elem):
+        """Adds the `linkGrp` element to the `s` element.
+
+        Returns
+        -------
+        link_group: etree.Element
+            The newly created `linkGrp` element.
+        """
+        link_group = etree.SubElement(self.sentence, XmlElements.linkGrp)
+        link_group.set(XmlAttributes.targFunc, "head argument")
+        link_group.set(XmlAttributes.type_, "UD-SYN")
+        return link_group
+
+
 class CorpusComponentAnnotator:
     """Applies linguistic annotation to a corpus component file.
     """
@@ -308,53 +385,8 @@ class CorpusComponentAnnotator:
                 elem = self._add_token_to_sentence(token, s)
                 self._add_xml_id_to_token(elem.get(XmlAttributes.xml_id),
                                           token)
-            linkGrp = self._add_link_group_element(s)
-            for token in sentence:
-                _ = self._add_link_to_group(token, sentence, linkGrp)
-
-    def _add_link_to_group(self, token, sentence, link_group):
-        """Adds a `link` element to the specified `linkGrp` element.
-
-        Parameters
-        ----------
-        token: conllu.models.Token, required
-            The token that is the origin of the link.
-        sentence: conllu.models.TokenList, required
-            The list of tokens containing the head element.
-        link_group: etree.Element, required
-            The parent `linkGrp` element.
-
-        Returns
-        -------
-        link: etree.Element
-            The newly created `link` element or None if token is the root element.
-        """
-        head = None
-        for tok in sentence:
-            if tok['id'] == token['head']:
-                head = tok
-                break
-        link = etree.Element(XmlElements.link)
-        rel = "ud-syn:{}".format(token['deprel']).replace(':', '_')
-        link.set(XmlAttributes.ana, rel)
-        if (head is None) and (len(sentence) > 1):
-            # token is the root element
-            tail_node_id = head['misc'][XmlAttributes.xml_id]
-            head_node_id = link_group.getparent().get(XmlAttributes.xml_id)
-            link.set(
-                XmlAttributes.target,
-                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
-            return None
-        tail_node_id = token['misc'][XmlAttributes.xml_id]
-        if head is not None:
-            head_node_id = head['misc'][XmlAttributes.xml_id]
-            link.set(
-                XmlAttributes.target,
-                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
-        else:
-            link.set(XmlAttributes.target, '#{}'.format(tail_node_id))
-        link_group.append(link)
-        return link
+            builder = LinkGroupBuilder(s)
+            builder.build_from(sentence)
 
     def _add_xml_id_to_token(self, xml_id, token):
         """Adds the provided xml_id to the `misc` category of the token.
@@ -391,24 +423,6 @@ class CorpusComponentAnnotator:
         s = etree.SubElement(segment, XmlElements.s)
         s.set(XmlAttributes.xml_id, sentence_id)
         return s
-
-    def _add_link_group_element(self, sentence_elem):
-        """Adds the `linkGrp` element to the provided `s` element.
-
-        Parameters
-        ----------
-        sentence_elem: etree.Element, required
-            The `s` element to which to add the link group.
-
-        Returns
-        -------
-        link_group: etree.Element
-            The newly created `linkGrp` element.
-        """
-        link_group = etree.SubElement(sentence_elem, XmlElements.linkGrp)
-        link_group.set(XmlAttributes.targFunc, "head argument")
-        link_group.set(XmlAttributes.type_, "UD-SYN")
-        return link_group
 
     def _add_token_to_sentence(self, token, sentence_elem):
         """Adds the token to the specified s(entence) element in XML file.
