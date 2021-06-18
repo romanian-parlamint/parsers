@@ -477,13 +477,13 @@ class CorpusComponentAnnotator:
             head_sentence.metadata.pop('udpipe_model')
             head_sentence.metadata.pop('udpipe_model_licence')
         if self.last_document_id != document_id:
-            head_sentence.metadata['newdoc'] = 'id = {}'.format(document_id)
+            head_sentence.metadata['newdoc'] = document_id
             self.last_document_id = document_id
         else:
             head_sentence.metadata.pop('newdoc')
 
         if self.last_paragraph_id != paragraph_id:
-            head_sentence.metadata['newpar'] = 'id = {}'.format(paragraph_id)
+            head_sentence.metadata['newpar'] = paragraph_id
             self.last_paragraph_id = paragraph_id
         else:
             head_sentence.metadata.pop('newpar')
