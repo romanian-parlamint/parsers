@@ -338,13 +338,18 @@ class CorpusComponentAnnotator:
         link.set(XmlAttributes.ana, "ud-syn:{}".format(token['deprel']))
         if (head is None) and (len(sentence) > 1):
             # token is the root element
+            tail_node_id = head['misc'][XmlAttributes.xml_id]
+            head_node_id = link_group.getparent().get(XmlAttributes.xml_id)
+            link.set(
+                XmlAttributes.target,
+                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
             return None
         tail_node_id = token['misc'][XmlAttributes.xml_id]
         if head is not None:
             head_node_id = head['misc'][XmlAttributes.xml_id]
             link.set(
                 XmlAttributes.target,
-                "#{tail} #{head}".format(tail=tail_node_id, head=head_node_id))
+                "#{head} #{tail}".format(tail=tail_node_id, head=head_node_id))
         else:
             link.set(XmlAttributes.target, '#{}'.format(tail_node_id))
         link_group.append(link)
