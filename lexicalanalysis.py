@@ -335,7 +335,8 @@ class CorpusComponentAnnotator:
                 head = tok
                 break
         link = etree.Element(XmlElements.link)
-        link.set(XmlAttributes.ana, "ud-syn:{}".format(token['deprel']))
+        rel = "ud-syn:{}".format(token['deprel']).replace(':', '_')
+        link.set(XmlAttributes.ana, rel)
         if (head is None) and (len(sentence) > 1):
             # token is the root element
             tail_node_id = head['misc'][XmlAttributes.xml_id]
