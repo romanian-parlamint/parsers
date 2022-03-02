@@ -1,3 +1,4 @@
+"""Parse sessions of Lower House."""
 import logging
 from argparse import ArgumentParser
 from pathlib import Path
@@ -24,6 +25,7 @@ def iter_files(directory):
 
 
 def run(args):
+    """Entrypoint for parsing Lower House sessions."""
     total, processed, failed = 0, 0, 0
     for f in iter_files(args.input_directory):
         input_file = str(f)
@@ -47,6 +49,7 @@ def run(args):
 
 
 def parse_arguments():
+    """Parse command-line arguments."""
     parser = ArgumentParser()
     parser.add_argument(
         '-i',
