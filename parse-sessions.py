@@ -1,11 +1,6 @@
 import logging
 from argparse import ArgumentParser
 from pathlib import Path
-import re
-from datetime import date
-from babel.dates import format_date
-from lxml import etree
-from nltk.tokenize import word_tokenize
 from xmlbuilder import SessionXmlBuilder
 
 
