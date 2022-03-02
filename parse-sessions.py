@@ -39,8 +39,7 @@ def iter_files(directory, file_type='html', include_files=None):
 
 def run(args):
     total, processed, failed = 0, 0, 0
-    for f in iter_files(args.input_directory,
-                        include_files=args.include_files):
+    for f in iter_files(args.input_directory):
         input_file = str(f)
         total = total + 1
         logging.info("Building session XML from [{}].".format(input_file))
@@ -66,23 +65,18 @@ def parse_arguments():
     parser.add_argument(
         '-i',
         '--input-directory',
-        help=
-        "The root directory containing session transcripts. Default value is './corpus'.",
+        help="The root directory containing session transcripts." +
+        " Default value is './corpus'.",
         default='./corpus')
-    parser.add_argument(
-        '--include-files',
-        help='A regex pattern to filter which files will be included.',
-        default='20[0-9]{2}')
     parser.add_argument(
         '--session-template-xml',
         help="The file containing the XML template of a section.",
         default='./session-template.xml')
-    parser.add_argument(
-        '-o',
-        '--output-directory',
-        help=
-        "The directory where to output XML files. Default value is './output'.",
-        default='./output')
+    parser.add_argument('-o',
+                        '--output-directory',
+                        help="The directory where to output XML files." +
+                        " Default value is './output'.",
+                        default='./output')
     parser.add_argument(
         '--group-by-year',
         help='Specifies whether to group output files by year.',
