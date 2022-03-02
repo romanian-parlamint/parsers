@@ -9,18 +9,13 @@ from nltk.tokenize import word_tokenize
 from xmlbuilder import SessionXmlBuilder
 
 
-def iter_files(directory, file_type='html', include_files=None):
-    """Recursively iterates over the files of the specified type in the given directory.
+def iter_files(directory):
+    """Recursively iterates over files of the specified type in a given directory.
 
     Parameters
     ----------
     directory: str, required
         The directory to iterate.
-    file_type: str, optional
-        The type (extension) of the files to iterate over.
-        Default is 'html'.
-    include_files: str, optional
-        A pattern to filter files. Default is `None` which means include all.
 
     Returns
     -------
@@ -28,12 +23,8 @@ def iter_files(directory, file_type='html', include_files=None):
         The generator that returns the path of each file.
     """
     root_path = Path(directory)
-    for file_path in root_path.glob('**/*.{}'.format(file_type)):
-        if not include_files:
-            yield file_path
-
-        match = re.search(include_files, str(file_path), re.IGNORECASE)
-        if match:
+    for file_path in root_path.glob('**/*.*'):
+        if 'htm' in file_path.suffix.lower():
             yield file_path
 
 
