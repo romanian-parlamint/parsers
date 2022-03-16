@@ -6,11 +6,11 @@ certifi==2021.10.8
 chardet==4.0.0
 idna==2.10
 requests==2.25.1
-numpy==1.20.3
-pandas==1.2.4
+numpy==1.22.3
+pandas==1.4.1
 conllu==4.4
-spacy==3.0.0
-https://github.com/explosion/spacy-models/releases/download/ro_core_news_lg-3.0.0/ro_core_news_lg-3.0.0-py3-none-any.whl#egg=ro_core_news_lg
+spacy==3.0.8
+ro-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/ro_core_news_lg-3.0.0/ro_core_news_lg-3.0.0-py3-none-any.whl
 cymem==2.0.5
 Jinja2==3.0.1
 MarkupSafe==2.0.1
@@ -42,3 +42,7 @@ six==1.16.0
 snowballstemmer==2.2.0
 soupsieve==2.3.1
 spacy-loggers==1.0.1
+charset-normalizer==2.0.12
+joblib==1.1.0
+langcodes==3.3.0
+tqdm==4.63.0
