@@ -60,7 +60,7 @@ def parse_arguments():
     parser.add_argument(
         '--session-template-xml',
         help="The file containing the XML template of a section.",
-        default='./session-template.xml')
+        default='./data/templates/session-template.xml')
     parser.add_argument('-o',
                         '--output-directory',
                         help="The directory where to output XML files." +
