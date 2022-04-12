@@ -50,7 +50,7 @@ def parse_arguments():
                         default='./organizations.csv')
     parser.add_argument('--template-file',
                         help="Path to the corpus root template file.",
-                        default='./corpus-root-template.xml')
+                        default='./data/templates/corpus-root-template.xml')
     parser.add_argument('--corpus-dir',
                         help="Path to the directory containing corpus.",
                         default='./output')
