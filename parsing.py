@@ -88,7 +88,7 @@ class Segment:
         return False
 
     def get_speaker(self):
-        """Returns the speaker name if the current segment is a speaker.
+        """Return the speaker name if the current segment is a speaker.
 
         Returns
         -------
@@ -100,7 +100,7 @@ class Segment:
         return self._get_spearker()
 
     def get_text(self):
-        """Returns the text of the current segment.
+        """Return the text of the current segment.
 
         Returns
         -------
@@ -112,7 +112,7 @@ class Segment:
                       re.MULTILINE | re.IGNORECASE)
 
     def get_note_text(self):
-        """Returns the editorial note text.
+        """Return the editorial note text.
 
         Returns
         -------
