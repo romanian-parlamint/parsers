@@ -39,36 +39,48 @@ def parse_organization_name(organization_name, separator='-'):
 
 
 class Segment:
-    """Represents a segment of a  session.
-    """
+    """Represents a segment of a  session."""
+
     def __init__(self, paragraph):
+        """Create a new instance of Segment class.
+
+        Parameters
+        ----------
+        paragraph: etree.Element, required
+            The paragraph element to parse into a segment.
+        """
         self.paragraph = paragraph
         self.children = list(self.paragraph)
         self.full_text = get_element_text(self.paragraph)
 
     @property
     def is_speaker(self):
-        """Returns true if the segment is a speaker segment.
-        """
+        """Return true if the segment is a speaker segment."""
         match = re.match(r'(domnul|doamna)\s+[^:]+:', self.full_text,
                          re.IGNORECASE | re.MULTILINE)
-        if match is not None:
-            formatter = StringFormatter()
-            speaker = self._get_spearker().strip()
-            speaker = formatter.normalize(speaker)
-            speaker = formatter.to_single_line(speaker)
-            speaker = speaker.replace('-', '').replace(':', '')
-            name_parts = speaker.split()
-            for p in name_parts:
-                if not p[0].isupper():
-                    return False
-            return True
-        return False
+        if match is None:
+            return False
+
+        # When the chairman is doing the name call in a session
+        # this can trigger a false positive for is_speaker
+        lower_text = self.full_text.lower()
+        if 'prezent' in lower_text or 'absent' in lower_text:
+            return False
+
+        formatter = StringFormatter()
+        speaker = self._get_spearker().strip()
+        speaker = formatter.normalize(speaker)
+        speaker = formatter.to_single_line(speaker)
+        speaker = speaker.replace('-', '').replace(':', '')
+        name_parts = speaker.split()
+        for p in name_parts:
+            if not p[0].isupper():
+                return False
+        return True
 
     @property
     def has_note(self):
-        """Returns true if the current segment contains a note.
-        """
+        """Return true if the current segment contains a note."""
         for child in self.paragraph:
             if child.tag == 'i':
                 if len(get_element_text(child)) > 0:
