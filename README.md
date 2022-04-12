@@ -1,5 +1,34 @@
 # Parsers of the Romanian ParlaMint corpus files #
 
+## Prerequisites ##
+
+Running the processing of the corpus requires installing dependent Python packages. To do so, it is recommended to create a separate virtual environment for this purpose.
+
+### Create a virtual environment ###
+
+Open a console and navigate to the root of this repository: `cd ~/Git/romanian-parlamint/parsers`. Once in the rood directory, create a virtual environment using `python3 -m venv .venv`.
+
+
+### Activate the virtual environment ###
+
+To activate the virtual environment, open a console and type `source .venv/bin/activate`.
+
+### Install required packages ###
+
+After activating the virtual environment, upgrade `pip`, `setuptools`, and `wheel` packages using `pip install --upgrade pip setuptools wheel`.
+
+Once the upgrade finishes, install the required packages using `pip install -r requirements.txt`.
+
+### Download `nltk` packages ###
+
+Besides the required packages from [`requirements.txt`](./requirements.txt), you need to install the `punkt` module from `nltk`. To do so, in the same console where the virtual environment is active, run `python`.
+
+In the Python console type the following to download `punkt` module:
+```sh
+import nltk
+	nltk.download('punkt')
+```
+
 ## Processing pipeline ##
 
 1. Run `python crawl-deputy-data.py` to download corpus metadata (list of deputies with their affiliations)
