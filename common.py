@@ -103,8 +103,23 @@ class StringFormatter:
             'Þ': 'Ț',
             'ã': 'ă',
             'ª': 'Ș',
-            '\226': '\u2013'
+            '\226': '\u2013',
+            'Ş': 'Ș',
+            'ş': 'ș',
+            'Ţ': 'Ț',
+            'ţ': 'ț'
         })
+
+        self.replacements = {
+            '&Shorn;': 'Ș',
+            '&shorn;': 'ș',
+            '&Thorn;': 'Ț',
+            '&thorn;': 'ț',
+            '&Icirc;': 'Î',
+            '&icirc;': 'î',
+            '&atilde;': 'ă',
+            '&acirc;': 'â'
+        }
 
     def to_single_line(self, value):
         """Removes line feed/carriage returns from given string.
@@ -125,4 +140,7 @@ class StringFormatter:
         value: str, required
             The string to normalize.
         """
-        return value.strip().translate(self.translations)
+        result = value.strip().translate(self.translations)
+        for old, new in self.replacements.items():
+            result = result.replace(old, new)
+        return result
