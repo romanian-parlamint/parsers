@@ -242,7 +242,6 @@ class SessionParser:
         heading: str
             The heading line.
         """
-        heading_elem = None
         found = False
         for para in self.html_root.iterdescendants():
             text = self.formatter.normalize(get_element_text(para))
@@ -272,9 +271,11 @@ class SessionParser:
         """
         for para in self.html_root.iterdescendants(tag='p'):
             text = self.formatter.normalize(get_element_text(para))
-            if Resources.SessionStartMark in text.lower():
-                self.current_node = para
-                return text
+            canonical_text = text.lower()
+            for mark in Resources.SessionStartMarks:
+                if mark in canonical_text:
+                    self.current_node = para
+                    return text
 
         logging.error(
             "Could not parse session start time for file [{}].".format(

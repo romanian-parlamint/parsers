@@ -78,7 +78,9 @@ class Resources:
     Heading = "ROMÂNIA CAMERA DEPUTAȚILOR"
     SessionHeading = "Ședinta Camerei Deputaților din {}"
     ToC = "SUMAR"
-    SessionStartMark = "ședința a început la ora"
+    SessionStartMarks = [
+        "ședința a început la ora", "lucrările ședinței au început la ora"
+    ]
     SessionEndMark = "încheiat la ora"
     AffiliationStartDateMark = "din"
     PoliticalParty = "Formațiunea politică"
