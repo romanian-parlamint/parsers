@@ -480,6 +480,7 @@ DeputyInfo = namedtuple("DeputyInfo",
 class RootXmlBuilder:
     """Builds the corpus root XML file.
     """
+
     def __init__(self,
                  template_file,
                  deputy_info,
@@ -1105,7 +1106,7 @@ class RootXmlBuilder:
         """
         file_name = Path(self.corpus_dir, file_name)
         file_name = str(file_name)
-        save_xml(self.xml_root, file_name)
+        save_xml(self.xml_root, file_name, use_xmllint=False)
 
     def _build_organizations_list(self):
         """Builds the list of organizations from affiliation records.
@@ -1214,6 +1215,7 @@ class RootXmlBuilder:
 class XmlIdBuilder:
     """Builds the values for id attributes of XML elements.
     """
+
     def __init__(self, prefix, session_date):
         """Creates a new instance of XmlIdBuilder.
         """
