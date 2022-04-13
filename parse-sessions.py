@@ -38,11 +38,12 @@ def run(args):
             builder.write_to_file(group_by_year=args.group_by_year,
                                   use_xmllint=not args.no_xmllint)
             processed = processed + 1
-        except Exception:
+        except Exception as e:
             failed = failed + 1
             logging.error(
                 "Failed to build XML transcription for file [{}].".format(
                     input_file))
+            logging.exception("Exception thrown when building transcription: %r", e)
     logging.info("Processed: {}/{} files.".format(processed, total))
     logging.info("Failed: {}/{} files.".format(failed, total))
     logging.info("That's all folks!")
