@@ -96,6 +96,7 @@ class Resources:
 class StringFormatter:
     """Formats the strings parsed from the session transcription.
     """
+
     def __init__(self):
         """Creates a new instance of StringFormatter.
         """

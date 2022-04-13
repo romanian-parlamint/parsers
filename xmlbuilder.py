@@ -1,7 +1,6 @@
+"""Utility classes and functions for building XML."""
 import logging
-from datetime import date
 from babel.dates import format_date
-import re
 from lxml import etree
 from common import Resources
 from parsing import parse_organization_name, SessionParser
@@ -15,6 +14,8 @@ from dateutil import parser
 
 
 class XmlElements:
+    """Names of the XML elements to build or parse."""
+
     TEI = '{http://www.tei-c.org/ns/1.0}TEI'
     titleStmt = '{http://www.tei-c.org/ns/1.0}titleStmt'
     title = '{http://www.tei-c.org/ns/1.0}title'
@@ -57,6 +58,8 @@ class XmlElements:
 
 
 class XmlAttributes:
+    """Constants used for names of XML attributes."""
+
     xml_id = '{http://www.w3.org/XML/1998/namespace}id'
     lang = '{http://www.w3.org/XML/1998/namespace}lang'
     element_type = 'type'
@@ -86,14 +89,14 @@ class XmlAttributes:
 
 
 class SessionXmlBuilder:
-    """Class responsible for building the XML file with the transcript of a session.
-    """
+    """Class responsible for building the XML file of a session transcript."""
+
     def __init__(self,
                  input_file,
                  template_file,
                  output_directory,
                  output_file_prefix='ParlaMint-RO'):
-        """Creates a new instance of SessionXmlBuilder class.
+        """Create a new instance of SessionXmlBuilder class.
 
         Parameters
         ----------
@@ -120,7 +123,7 @@ class SessionXmlBuilder:
                       file_name=None,
                       group_by_year=False,
                       use_xmllint=False):
-        """Writes the XML session to a file given by file_name or session id.
+        """Write the XML session to a file given by file_name or session id.
 
         Parameters
         ----------
