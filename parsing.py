@@ -1,11 +1,9 @@
+"""Classes and functions for parsing session transcripts."""
 import logging
 from pathlib import Path
 import re
 from datetime import date
-from babel.dates import format_date
 from lxml import etree
-from nltk.tokenize import word_tokenize
-from common import SessionType
 from common import StringFormatter
 from common import Resources
 from collections import deque
@@ -13,7 +11,7 @@ from common import get_element_text
 
 
 def parse_organization_name(organization_name, separator='-'):
-    """Splits the organization name into an acronym and the full name.
+    """Split the organization name into an acronym and the full name.
 
     Parameters
     ----------
@@ -133,25 +131,30 @@ class Segment:
 
 
 class TableRowSegment:
-    """Represents a segment of a  session extracted from a table row.
-    """
+    """Represents a segment of a  session extracted from a table row."""
+
     def __init__(self, table_row):
+        """Create a new instance of TableRowSegment.
+
+        Parameters
+        ----------
+        table_row: etree.Element, required
+            The HTML element representing a table row.
+        """
         self.table_row = table_row
 
     @property
     def is_speaker(self):
-        """Returns true if the segment is a speaker segment.
-        """
+        """Return true if the segment is a speaker segment."""
         return False
 
     @property
     def has_note(self):
-        """Returns true if the current segment contains a note.
-        """
+        """Return true if the current segment contains a note."""
         return False
 
     def get_speaker(self):
-        """Returns the speaker name if the current segment is a speaker.
+        """Return speaker name if the current segment is a speaker; otherwise None.
 
         Returns
         -------
@@ -161,7 +164,7 @@ class TableRowSegment:
         return None
 
     def get_text(self):
-        """Returns the text of the current segment.
+        """Return the text of the current segment.
 
         Returns
         -------
@@ -173,7 +176,7 @@ class TableRowSegment:
                       re.MULTILINE | re.IGNORECASE)
 
     def get_note_text(self):
-        """Returns the editorial note text.
+        """Return the editorial note text.
 
         Returns
         -------
@@ -184,10 +187,10 @@ class TableRowSegment:
 
 
 class SessionParser:
-    """Class responsible for parsing a session html file.
-    """
+    """Class responsible for parsing a session html file."""
+
     def __init__(self, html_file):
-        """Creates a new instance of the SessionParser class.
+        """Create a new instance of the SessionParser class.
 
         Parameters
         ----------
@@ -203,7 +206,7 @@ class SessionParser:
             etree.tostring(self.html_root, method='html', pretty_print=True)))
 
     def parse_session_date(self):
-        """Parses the session date from the name of the session file.
+        """Parse the session date from the name of the session file.
 
         Returns
         -------
@@ -214,7 +217,7 @@ class SessionParser:
         return session_date
 
     def parse_session_type(self):
-        """Parses the session type from the name of the session file.
+        """Parse the session type from the name of the session file.
 
         Returns
         -------
@@ -225,7 +228,7 @@ class SessionParser:
         return session_type
 
     def parse_session_summary(self):
-        """Parses the session summary table.
+        """Parse the session summary table.
 
         Returns
         -------
@@ -247,7 +250,7 @@ class SessionParser:
         return summary_lines
 
     def parse_session_heading(self):
-        """Parses the session heading.
+        """Parse the session heading.
 
         Returns
         -------
@@ -274,7 +277,7 @@ class SessionParser:
         return text
 
     def parse_session_start_time(self):
-        """Parses the segment containing start time of the session.
+        """Parse the segment containing start time of the session.
 
         Returns
         -------
@@ -295,7 +298,7 @@ class SessionParser:
         return None
 
     def parse_session_chairmen(self):
-        """Parses the segment about who presides the session.
+        """Parse the segment about who presides the session.
 
         Returns
         -------
@@ -303,9 +306,8 @@ class SessionParser:
             The segment containing info about who presides the session.
         """
         if self.current_node is None:
-            logging.error(
-                'Current node not set in file [{}]. Cannot parse chairmen segment.'
-                .format(self.file_name))
+            message = 'Error in file [{}]. Cannot parse chairmen segment.'
+            logging.error(message.format(self.file_name))
             return None
 
         self.current_node = self.current_node.getnext()
@@ -313,7 +315,7 @@ class SessionParser:
         return text
 
     def parse_session_segments(self):
-        """Parses the segments that form the body of the session.
+        """Parse the segments that form the body of the session.
 
         Returns
         -------
@@ -342,7 +344,7 @@ class SessionParser:
         return segments
 
     def parse_session_end_time(self):
-        """Parses the segment containing end time of the session.
+        """Parse the segment containing end time of the session.
 
         Returns
         -------
@@ -370,7 +372,7 @@ class SessionParser:
         return None
 
     def _parse_table_segments(self, elem):
-        """Converts the rows of the table from within the specified element to segments.
+        """Convert the rows of the table from within the specified element to segments.
 
         Parameters
         ----------
@@ -388,7 +390,7 @@ class SessionParser:
         return [TableRowSegment(tr) for tr in elem.iterdescendants(tag='tr')]
 
     def _contains_table(self, elem):
-        """Checks if the current element contains a table.
+        """Check if the current element contains a table.
 
         Parameters
         ----------
@@ -405,7 +407,7 @@ class SessionParser:
         return len(table) > 0
 
     def _parse_date_and_type(self):
-        """Parses the session date and type from file path.
+        """Parse the session date and type from file path.
 
         Returns
         -------
@@ -415,9 +417,8 @@ class SessionParser:
         msg = 'Parsing session date and type from file name [{}]'.format(
             self.file_name)
         logging.info(msg)
-        match = re.search(
-            r"/(?P<year>\d{4})/(\d{2}/)?(?P<type>[a-z]{1,3})-?(?P<day>\d{2})(-|_)(?P<month>\d{2})",
-            self.file_name)
+        pattern = r"/(?P<year>\d{4})/(\d{2}/)?(?P<type>[a-z]{1,3})-?(?P<day>\d{2})(-|_)(?P<month>\d{2})"
+        match = re.search(pattern, self.file_name)
         if not match:
             msg = "Could not parse session date and type from file [{}].".format(
                 self.file_name)
