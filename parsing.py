@@ -129,9 +129,16 @@ class Segment:
             return True
 
     def _get_spearker(self):
+        # Replace title and colon with empty string
         speaker = re.sub(r'domnul|doamna|(\(.+\)*)?:', '', self.full_text, 0,
                          re.MULTILINE | re.IGNORECASE)
-        return speaker
+        index = speaker.lower().index(Resources.President)
+        if index > -1:
+            speaker = speaker[:index].strip()
+        if speaker.endswith('-'):
+            speaker = speaker.replace('-', '')
+
+        return speaker.strip()
 
 
 class TableRowSegment:

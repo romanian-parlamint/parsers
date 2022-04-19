@@ -95,6 +95,7 @@ class Resources:
     NoAdherence = "Fără adeziune"
     Present = "prezent"
     Absent = "absent"
+    President = "președinte"
 
 
 class StringFormatter:
