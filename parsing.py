@@ -61,8 +61,7 @@ class Segment:
 
         # When the chairman is doing the name call in a session
         # this can trigger a false positive for is_speaker
-        lower_text = self.full_text.lower()
-        if 'prezent' in lower_text or 'absent' in lower_text:
+        if self._is_name_call_segment():
             return False
 
         formatter = StringFormatter()
@@ -123,6 +122,11 @@ class Segment:
                     return get_element_text(child).replace(':', '')
                 return get_element_text(child)
         return None
+
+    def _is_name_call_segment(self):
+        lower_text = self.full_text.lower()
+        if Resources.Absent in lower_text or Resources.Present in lower_text:
+            return True
 
     def _get_spearker(self):
         speaker = re.sub(r'domnul|doamna|(\(.+\)*)?:', '', self.full_text, 0,

@@ -67,6 +67,8 @@ class SessionType:
 
 
 class Resources:
+    """Resource strings."""
+
     SessionTitleRo = "Corpus parlamentar român ParlaMint-RO, ședința Camerei Deputaților din {}"
     SessionSubtitleRo = "Stenograma ședinței Camerei Deputaților din România din {}"
     SessionTitleEn = "Romanian parliamentary corpus ParlaMint-RO, Regular Session, Chamber of Deputies, {}"
@@ -91,6 +93,8 @@ class Resources:
     TranscriptSpaced = "S T E N O G R A M A"
     Unaffiliated = "Neafiliat"
     NoAdherence = "Fără adeziune"
+    Present = "prezent"
+    Absent = "absent"
 
 
 class StringFormatter:
