@@ -12,7 +12,7 @@ conllu==4.4
 spacy==3.0.8
 ro-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/ro_core_news_lg-3.0.0/ro_core_news_lg-3.0.0-py3-none-any.whl
 cymem==2.0.5
-Jinja2==3.0.1
+Jinja2==3.1.3
 MarkupSafe==2.0.1
 murmurhash==1.0.5
 packaging==20.9
