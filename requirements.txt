@@ -45,5 +45,5 @@ spacy-loggers==1.0.1
 charset-normalizer==2.0.12
 joblib==1.2.0
 langcodes==3.3.0
-tqdm==4.63.0
+tqdm==4.66.3
 ufal.udpipe==1.2.0.3
