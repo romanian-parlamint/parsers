@@ -5,7 +5,7 @@ catalogue==2.0.6
 certifi==2023.7.22
 chardet==4.0.0
 idna==3.7
-requests==2.31.0
+requests==2.32.2
 numpy==1.22.3
 pandas==1.4.1
 conllu==4.4
